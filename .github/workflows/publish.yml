@@ -5,20 +5,20 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
@@ -27,12 +27,8 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 2025 年终极发布脚本：
-        # 1. 显式指定 registry 避免环境变量干扰
-        # 2. 显式指定 access
-        # 3. 显式禁用 provenance (在 1.0.3 这一关先求稳，1.0.4 再开)
-        run: |
-          npm publish --registry=https://registry.npmjs.org/ --access=public --no-provenance
-        env:
-          # 这个变量只要不是空的，就能触发 npm CLI 的认证逻辑，进而激活 id-token
-          NODE_AUTH_TOKEN: 'oidc-trigger'
+        # 2025 黄金配置：
+        # 1. 之前 setup-node 生成了指向 npm 的 .npmrc 配置
+        # 2. 我们不提供 NODE_AUTH_TOKEN 变量
+        # 3. npm publish 检测到 provenance 标志后，会尝试从 GitHub 的 OIDC 端点自动获取动态令牌
+        run: npm publish --provenance --access public
