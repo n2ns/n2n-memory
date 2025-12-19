@@ -2,6 +2,8 @@
 .github/
 .agent/
 .vscode/
+docs/
+.mcp/
 
 # 忽略源代码和测试
 src/
