@@ -5,13 +5,12 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
@@ -21,7 +20,8 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm install
+        # 使用 ci 确保环境纯净，这是 2025 年 OIDC 的推荐做法
+        run: npm ci
 
       - name: Run tests
         run: npm test
@@ -29,9 +29,6 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Configure OIDC for NPM
-        # 2025 年关键补丁：提示 NPM CLI 使用 Bearer 类型的 OIDC 令牌进行认证
-        run: npm config set //registry.npmjs.org/:token_type=bearer
-
       - name: Publish to NPM
+        # 只使用最核心的参数
         run: npm publish --provenance --access public
