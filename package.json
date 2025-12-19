@@ -6,6 +6,10 @@
   "bin": {
     "n2n-memory": "build/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/n2ns/n2n-memory.git"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",
