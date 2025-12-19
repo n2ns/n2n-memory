@@ -120,3 +120,6 @@ This service is path-driven. AI assistants should pay attention to:
 
 ## 📄 License | 许可证
 This project is licensed under the [MIT License](./LICENSE). | 本项目采用 [MIT 许可证](./LICENSE)。
+
+---
+**N2N Studio [@n2ns](https://github.com/n2ns)**
