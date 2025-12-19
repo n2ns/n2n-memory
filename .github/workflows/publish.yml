@@ -5,20 +5,20 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org/'
 
       - name: Install dependencies
         run: npm ci
@@ -26,12 +26,13 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Configure Scope Registry
-        # 仅仅绑定 Scope 到主注册表，不写 Token。
-        # 这会让 npm 知道往哪发，同时因为没有 Token，
-        # 它会触发 fallback 逻辑去寻找 OIDC 令牌。
-        run: npm config set @datafrog-io:registry https://registry.npmjs.org/
-
       - name: Publish to NPM
-        # 最纯净的命令，不带 env。
-        run: npm publish --provenance --access public
+        # 2025 黄金配置方案：
+        # 1. rm -f .npmrc: 强行删除 setup-node 注入的可疑配置，确保不读残留 token
+        # 2. oidc-bypass placeholder: 激活 npm CLI 的认证逻辑，让其回落至 OIDC
+        # 3. --provenance: 触发 2025 年标准的凭证生成。
+        run: |
+          rm -f .npmrc
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: 'oidc-bypass'
