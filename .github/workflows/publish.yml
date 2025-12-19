@@ -19,7 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
 
       - name: Install dependencies
         run: npm ci
@@ -27,9 +26,12 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Configure Scope Registry
+        # 仅仅绑定 Scope 到主注册表，不写 Token。
+        # 这会让 npm 知道往哪发，同时因为没有 Token，
+        # 它会触发 fallback 逻辑去寻找 OIDC 令牌。
+        run: npm config set @datafrog-io:registry https://registry.npmjs.org/
+
       - name: Publish to NPM
-        # 我们已经完全对齐了 registry, access, repository URL。
-        # 仍然使用 placeholder 确保不报 ENEEDAUTH。
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: 'oidc-final-push'
+        # 最纯净的命令，不带 env。
+        run: npm publish --provenance --access public
