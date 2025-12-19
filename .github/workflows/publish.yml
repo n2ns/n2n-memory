@@ -5,7 +5,6 @@ on:
     tags:
       - 'v*'
 
-# 权限提升至顶层确保整个工作流可见
 permissions:
   id-token: write
   contents: read
@@ -20,7 +19,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          # 重要：OIDC 模式下绝对不能配置 registry-url，否则会触发 ENEEDAUTH 错误
 
       - name: Install dependencies
         run: npm install
@@ -32,5 +31,4 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 这里不需要任何 flag，配置已全部在 package.json 的 publishConfig 中
-        run: npm publish
+        run: npm publish 

@@ -1,12 +1,15 @@
 {
   "name": "@datafrog-io/n2n-memory",
-  "version": "1.0.4",
+  "version": "1.0.1",
   "description": "Project-local knowledge-graph memory MCP server for AI context isolation.",
   "main": "build/index.js",
   "bin": {
     "n2n-memory": "build/index.js"
   },
-  "repository": "n2ns/n2n-memory",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n2ns/n2n-memory.git"
+  },
   "publishConfig": {
     "access": "public",
     "provenance": true
