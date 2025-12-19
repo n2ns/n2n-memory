@@ -1,0 +1,34 @@
+# Dependency directories
+node_modules/
+
+# TypeScript build output
+build/
+dist/
+*.tsbuildinfo
+
+# Project-specific MCP memory (Important: do not commit local memory files)
+.mcp/
+memory.json
+
+# Environment variables
+.env
+.env.local
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary/Agent files
+.agent/
+.gemini/

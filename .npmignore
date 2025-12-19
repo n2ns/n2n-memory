@@ -1,0 +1,15 @@
+# 忽略开发工具
+.github/
+.agent/
+.vscode/
+
+# 忽略源代码和测试
+src/
+build/test/
+
+# 忽略配置
+tsconfig.json
+eslint.config.mjs
+# 忽略日志和临时文件
+npm-debug.log
+node_modules/
