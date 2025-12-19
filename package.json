@@ -1,6 +1,6 @@
 {
   "name": "@datafrog-io/n2n-memory",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "build/index.js",
   "bin": {
