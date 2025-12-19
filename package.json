@@ -1,5 +1,5 @@
 {
-  "name": "@n2ns/n2n-memory",
+  "name": "@datafrog-io/n2n-memory",
   "version": "1.0.3",
   "description": "Project-local knowledge-graph memory MCP server for AI context isolation.",
   "main": "build/index.js",
