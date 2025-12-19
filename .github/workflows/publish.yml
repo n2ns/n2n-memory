@@ -9,7 +9,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # 此项允许 GitHub 生成 OIDC 临时令牌
+      id-token: write # 必需：允许 GitHub 生成临时令牌
       contents: read
     steps:
       - uses: actions/checkout@v4
@@ -31,4 +31,3 @@ jobs:
 
       - name: Publish to NPM
         run: npm publish --access public --provenance
-
