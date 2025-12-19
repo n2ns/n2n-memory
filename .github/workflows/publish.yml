@@ -28,8 +28,7 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 暂时去掉 --provenance，先打通 OIDC 的主路径。
-        # 继续保持 placeholder 技巧，因为它已经帮我们跨过了 ENEEDAUTH。
-        run: npm publish --access public
+        # 最纯粹的 OIDC 桥接发布，不带任何额外属性
+        run: npm publish 
         env:
           NODE_AUTH_TOKEN: 'oidc-bridge'

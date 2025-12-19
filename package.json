@@ -11,8 +11,7 @@
     "url": "git+https://github.com/n2ns/n2n-memory.git"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "type": "module",
   "scripts": {
