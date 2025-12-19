@@ -8,7 +8,8 @@
   },
   "repository": "n2ns/n2n-memory",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "type": "module",
   "scripts": {
