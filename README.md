@@ -1,4 +1,4 @@
-# N2N Memory MCP Server | N2N 记忆 MCP 服务
+# n2n-memory
 
 [English](#english) | [中文](#中文)
 

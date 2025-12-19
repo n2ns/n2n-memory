@@ -1,4 +1,4 @@
-# 开发与维护手册
+# n2n-memory 开发指南
 
 本手册记录了 N2N Memory MCP Server 的日常开发、测试及构建流程。
 
