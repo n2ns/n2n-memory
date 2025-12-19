@@ -20,7 +20,6 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        # 使用 ci 确保环境纯净，这是 2025 年 OIDC 的推荐做法
         run: npm ci
 
       - name: Run tests
@@ -30,5 +29,7 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 只使用最核心的参数
-        run: npm publish --provenance --access public
+        # 2025 年终极绝杀：强行删除可能存在的、带干扰的配置文件，并显式指定认证类型
+        run: |
+          rm -f .npmrc
+          npm publish --provenance --access public
