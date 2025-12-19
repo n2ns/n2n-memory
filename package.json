@@ -1,5 +1,5 @@
 {
-  "name": "@datafrog-io/n2n-memory",
+  "name": "@n2ns/n2n-memory",
   "version": "1.0.3",
   "description": "Project-local knowledge-graph memory MCP server for AI context isolation.",
   "main": "build/index.js",
@@ -9,7 +9,7 @@
   "repository": "n2ns/n2n-memory",
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "provenance": true
   },
   "type": "module",
   "scripts": {

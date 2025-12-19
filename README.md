@@ -29,7 +29,7 @@ File Path: `%APPDATA%\Claude\claude_desktop_config.json`
   "mcpServers": {
     "n2n-memory": {
       "command": "npx",
-      "args": ["-y", "@datafrog-io/n2n-memory"]
+      "args": ["-y", "@n2ns/n2n-memory"]
     }
   }
 }
@@ -39,7 +39,7 @@ File Path: `%APPDATA%\Claude\claude_desktop_config.json`
 Add in the MCP settings panel:
 - **Name**: `n2n-memory`
 - **Type**: `command`
-- **Command**: `npx -y @datafrog-io/n2n-memory`
+- **Command**: `npx -y @n2ns/n2n-memory`
 
 #### 2. Usage Guide
 
@@ -83,7 +83,7 @@ This service is path-driven. AI assistants should pay attention to:
   "mcpServers": {
     "n2n-memory": {
       "command": "npx",
-      "args": ["-y", "@datafrog-io/n2n-memory"]
+      "args": ["-y", "@n2ns/n2n-memory"]
     }
   }
 }
@@ -93,7 +93,7 @@ This service is path-driven. AI assistants should pay attention to:
 在 MCP 设置面板中添加：
 - **Name**: `n2n-memory`
 - **Type**: `command`
-- **Command**: `npx -y @datafrog-io/n2n-memory`
+- **Command**: `npx -y @n2ns/n2n-memory`
 
 #### 2. 使用指南 (Usage Guide)
 

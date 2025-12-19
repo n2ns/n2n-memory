@@ -19,6 +19,8 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org/'
+          # 现在 scope 完全匹配 Trusted Publisher 的组织
+          scope: '@n2ns'
 
       - name: Install dependencies
         run: npm ci
@@ -27,10 +29,12 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 如果 --provenance 导致 404 (常见的 sigstore 校验失败响应)，
-        # 那么不带 provenance 应该能发上去。
+        # 2025 年针对匹配 Org 的 Scoped 包的最佳实践：
+        # 1. rm -f .npmrc: 彻底清除 setup-node 环境可能存在的干扰性 Token（如果有的话）
+        # 2. --provenance 结合 id-token: write 触发真正的 OIDC 握手
+        # 3. NODE_AUTH_TOKEN: 'oidc-bypass' 作为激活 npm CLI 内置认证流的引子
         run: |
           rm -f .npmrc
-          npm publish --access public
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: 'oidc-bypass'
