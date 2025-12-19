@@ -5,12 +5,13 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@v4
       
@@ -18,7 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          # 注意：这里故意不写 registry-url
 
       - name: Install dependencies
         run: npm ci
@@ -29,9 +29,14 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Create safe .npmrc for OIDC
+        # 2025 年手动强制 Scope 绑定 Registry，这是解决 Scoped Package ENEEDAUTH 的最终手段
+        run: |
+          echo "@datafrog-io:registry=https://registry.npmjs.org/" > .npmrc
+          echo "//registry.npmjs.org/:_authToken=" >> .npmrc
+
       - name: Publish to NPM
-        # 2025 年“手动破障”：清空环境变量，确保 npm 没有任何 pre-auth 干扰
+        # unsetting config 保证没有任何外部环境变量干扰
         run: |
           unset NPM_CONFIG_USERCONFIG
-          npm config delete //registry.npmjs.org/:_authToken
           npm publish --provenance --access public
