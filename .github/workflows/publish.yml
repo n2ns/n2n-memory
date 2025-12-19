@@ -27,12 +27,10 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 2025 黄金配置方案：
-        # 1. rm -f .npmrc: 强行删除 setup-node 注入的可疑配置，确保不读残留 token
-        # 2. oidc-bypass placeholder: 激活 npm CLI 的认证逻辑，让其回落至 OIDC
-        # 3. --provenance: 触发 2025 年标准的凭证生成。
+        # 如果 --provenance 导致 404 (常见的 sigstore 校验失败响应)，
+        # 那么不带 provenance 应该能发上去。
         run: |
           rm -f .npmrc
-          npm publish --provenance --access public
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: 'oidc-bypass'
