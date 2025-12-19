@@ -10,6 +10,10 @@
     "type": "git",
     "url": "git+https://github.com/n2ns/n2n-memory.git"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",

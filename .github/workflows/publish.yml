@@ -9,7 +9,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # 必需：允许 GitHub 生成临时令牌
+      id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          # 注意：不要在这里配置 registry-url，OIDC 会自动处理
 
       - name: Install dependencies
         run: npm install
@@ -30,4 +30,5 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        run: npm publish --access public --provenance
+        # 去掉 --access 和 --provenance 标志，因为已经在 package.json 的 publishConfig 里定义了
+        run: npm publish 
