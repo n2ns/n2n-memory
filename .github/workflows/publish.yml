@@ -19,7 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
@@ -28,7 +27,12 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 最纯粹的 OIDC 桥接发布，不带任何额外属性
-        run: npm publish 
+        # 2025 年终极发布脚本：
+        # 1. 显式指定 registry 避免环境变量干扰
+        # 2. 显式指定 access
+        # 3. 显式禁用 provenance (在 1.0.3 这一关先求稳，1.0.4 再开)
+        run: |
+          npm publish --registry=https://registry.npmjs.org/ --access=public --no-provenance
         env:
-          NODE_AUTH_TOKEN: 'oidc-bridge'
+          # 这个变量只要不是空的，就能触发 npm CLI 的认证逻辑，进而激活 id-token
+          NODE_AUTH_TOKEN: 'oidc-trigger'
