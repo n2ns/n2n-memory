@@ -19,9 +19,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # 注意：这里也增加 registry-url 并显式声明 scope
           registry-url: 'https://registry.npmjs.org/'
-          scope: '@datafrog-io'
 
       - name: Install dependencies
         run: npm ci
@@ -30,7 +28,8 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # 使用 placeholder 成功激活过一次 ENEEDAUTH 破解，我们继续保留
+        # 我们已经完全对齐了 registry, access, repository URL。
+        # 仍然使用 placeholder 确保不报 ENEEDAUTH。
         run: npm publish --provenance
         env:
-          NODE_AUTH_TOKEN: 'oidc-is-live'
+          NODE_AUTH_TOKEN: 'oidc-final-push'
