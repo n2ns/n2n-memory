@@ -29,6 +29,9 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Configure OIDC for NPM
+        # 2025 年关键补丁：提示 NPM CLI 使用 Bearer 类型的 OIDC 令牌进行认证
+        run: npm config set //registry.npmjs.org/:token_type=bearer
+
       - name: Publish to NPM
-        # 在 2025 年，手动带上 provenance 标志能触发最可靠的 OIDC 认证检测
         run: npm publish --provenance --access public
