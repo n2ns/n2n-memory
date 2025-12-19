@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@datafrog-io'
 
       - name: Install dependencies
         run: npm ci
@@ -29,14 +31,10 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Create safe .npmrc for OIDC
-        # 2025 年手动强制 Scope 绑定 Registry，这是解决 Scoped Package ENEEDAUTH 的最终手段
-        run: |
-          echo "@datafrog-io:registry=https://registry.npmjs.org/" > .npmrc
-          echo "//registry.npmjs.org/:_authToken=" >> .npmrc
-
       - name: Publish to NPM
-        # unsetting config 保证没有任何外部环境变量干扰
-        run: |
-          unset NPM_CONFIG_USERCONFIG
-          npm publish --provenance --access public
+        # 2025 年官方应对 2FA + OIDC 的特殊配置：
+        # NODE_AUTH_TOKEN 随便填一个非空字符串，这会激活 npm 的认证探测流，
+        # 然后 id-token: write 权限会自动接管并完成真正的 OIDC 握手。
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: 'oidc-placeholder'
