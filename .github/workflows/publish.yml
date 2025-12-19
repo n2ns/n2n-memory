@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # 降回 LTS 版，它是目前对 OIDC 支持最稳的
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
@@ -28,8 +28,8 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        # NODE_AUTH_TOKEN 必须存在以触发 npm 的认证逻辑，
-        # 然后它会因为机器具备 id-token 权限而自动转换成 OIDC 握手。
-        run: npm publish --provenance --access public
+        # 暂时去掉 --provenance，先打通 OIDC 的主路径。
+        # 继续保持 placeholder 技巧，因为它已经帮我们跨过了 ENEEDAUTH。
+        run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: 'oidc-is-active'
+          NODE_AUTH_TOKEN: 'oidc-bridge'
