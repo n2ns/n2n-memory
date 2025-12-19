@@ -19,7 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          # 重要：OIDC 模式下绝对不能配置 registry-url，否则会触发 ENEEDAUTH 错误
 
       - name: Install dependencies
         run: npm install
@@ -31,4 +30,5 @@ jobs:
         run: npm run build
 
       - name: Publish to NPM
-        run: npm publish 
+        # 在 2025 年，手动带上 provenance 标志能触发最可靠的 OIDC 认证检测
+        run: npm publish --provenance --access public
