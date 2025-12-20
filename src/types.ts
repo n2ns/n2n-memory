@@ -17,6 +17,16 @@ export const KnowledgeGraphSchema = z.object({
     relations: z.array(RelationSchema).default([]),
 });
 
+export const ProjectContextSchema = z.object({
+    activeTask: z.string().optional().describe("Current task being performed"),
+    status: z.enum(["IN_PROGRESS", "COMPLETED", "BLOCKED", "PLANNING"]).default("PLANNING"),
+    reason: z.string().optional().describe("Reason for current status (especially if BLOCKED)"),
+    nextSteps: z.array(z.string()).default([]).describe("Planned subsequent actions"),
+    lastCommit: z.string().optional().describe("Hash or message of the last relevant git commit"),
+    updatedAt: z.string().optional().describe("ISO timestamp of the last context update")
+});
+
 export type Entity = z.infer<typeof EntitySchema>;
 export type Relation = z.infer<typeof RelationSchema>;
 export type KnowledgeGraph = z.infer<typeof KnowledgeGraphSchema>;
+export type ProjectContext = z.infer<typeof ProjectContextSchema>;

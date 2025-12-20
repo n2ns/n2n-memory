@@ -1,70 +1,83 @@
-# n2n-memory API 参考手册
+# n2n-memory API Reference
 
-本项目提供了一套基于项目本地路径的知识图谱管理工具。所有工具均要求传入 `projectPath` 以确保记忆的物理隔离。
-
-## 核心工具集
-
-### 1. `project_add_entities`
-向项目的知识图谱中添加新的实体（名词/概念）。
-
-**输入参数:**
-- `projectPath` (string): 项目根目录的绝对路径。
-- `entities` (Array): 实体对象列表。
-    - `name` (string): 实体名称（唯一标识）。
-    - `entityType` (string): 实体类型（如：CONCEPT, COMPONENT, BUG）。
-    - `observations` (string[]): 关于该实体的观测事实。
-
-**逻辑描述:**
-- 如果实体名称已存在，将合并 `observations` 并自动去重。
-- 写入前会对实体名称进行字典序排序。
+[中文版](./API_REFERENCE_zh.md)
 
 ---
 
-### 2. `project_add_observations`
-为已存在的实体追加新的发现或事实。
+This project provides a set of knowledge graph management tools based on local project paths. All tools require a `projectPath` to ensure physical isolation of memory.
 
-**输入参数:**
-- `projectPath` (string): 项目根目录的绝对路径。
-- `observations` (Array):
-    - `entityName` (string): 目标实体名称。
-    - `contents` (string[]): 要追加的事实列表。
+## Initialization & Handshake
 
-**逻辑描述:**
-- 仅当实体存在时才会添加。
-- 自动对 observation 内容执行字典序排序及去重。
+N2N-Memory enforces a strict project root policy. Memory will only be initialized in directories containing project markers (e.g., `.git`, `package.json`).
+
+1. **Detection**: Upon the first call, the server detects the root.
+2. **Confirmation**: If it's a new project, the server returns `AWAITING_CONFIRMATION`. You must call the tool again with `confirmNewProjectRoot` set to the detected path.
 
 ---
 
-### 3. `project_create_relations`
-在实体之间建立逻辑关系（谓词）。
+## Core Toolset
 
-**输入参数:**
-- `projectPath` (string): 项目根目录的绝对路径。
-- `relations` (Array):
-    - `from` (string): 源实体名称。
-    - `to` (string): 目标实体名称。
-    - `relationType` (string): 关系类型（如：DEPENDS_ON, IMPLEMENTS）。
+### 1. `n2n_add_entities`
+Adds new entities to the project's knowledge graph.
 
-**逻辑描述:**
-- 自动过滤完全重复的关系定义，防止数据冗余。
+**Input Parameters:**
+- `projectPath` (string): Absolute path to project root.
+- `entities` (Array): List of `{ name, entityType, observations }`.
 
 ---
 
-### 4. `project_read_graph`
-读取指定项目的完整知识图谱。
+### 2. `n2n_read_graph`
+Reads project memory and active context.
 
-**输入参数:**
-- `projectPath` (string): 项目根目录的绝对路径。
+**Input Parameters:**
+- `projectPath` (string): Absolute path to project root.
+- `summaryMode` (boolean, optional): If true, returns entities without observations.
+- `limit` (number, optional): Max entities to return.
+- `offset` (number, optional): Entities to skip.
 
-**返回:**
-- 包含 `entities` 和 `relations` 的标准 JSON 对象。
+**Returns:**
+- `graph`: Object with entities and relations.
+- `context`: Active task status and next steps.
+- `totalEntityCount`: Total entities in project.
+- `isTruncated`: True if more data exists.
 
 ---
 
-## 数据存储规范
-- **路径**: `.mcp/memory.json`
-- **格式**: 2 空格缩进的 JSON。
-- **排序策略**: 
-    - 实体：按 `name` 排序。
-    - 关系：按 `from` -> `to` -> `type` 排序。
-    - 观测：按字母序排序。
+### 3. `n2n_get_graph_summary`
+Quickly fetch a lightweight index of all entities.
+
+**Input Parameters:**
+- `projectPath` (string): Absolute path to project root.
+- `limit` / `offset` (optional): Pagination parameters.
+
+**Returns:**
+- List of `{ name, type }` and `relationCount`.
+
+---
+
+### 4. `n2n_update_context`
+Update the "Hot State" of the project (status, next steps).
+
+**Input Parameters:**
+- `status` (enum): `PLANNING`, `IN_PROGRESS`, `COMPLETED`, `BLOCKED`.
+- `nextSteps` (string[]): Planned actions.
+
+---
+
+### 5. `n2n_search`
+Keyword search with pagination.
+
+**Input Parameters:**
+- `query` (string): Search term.
+- `limit` / `offset` (optional): Pagination.
+
+---
+
+### 6. `n2n_open_nodes`
+Retrieve specific entities by name for focused context.
+
+---
+
+## Data Storage Specification
+- **Path**: `.mcp/memory.json` (Cold Data) & `.mcp/context.json` (Hot Data).
+- **Sorting**: All lists are lexicographically sorted to ensure clean `git diff`.

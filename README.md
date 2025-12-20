@@ -1,11 +1,17 @@
 # n2n-memory
 
-[English](#english) | [中文](#中文)
+[![npm version](https://img.shields.io/npm/v/@datafrog-io/n2n-memory)](https://www.npmjs.com/package/@datafrog-io/n2n-memory)
+[![license](https://img.shields.io/github/license/n2ns/n2n-memory)](https://github.com/n2ns/n2n-memory/blob/main/LICENSE)
+[![MCP Protocol](https://img.shields.io/badge/MCP-Protocol-blue)](https://modelcontextprotocol.io)
+[![node version](https://img.shields.io/node/v/@datafrog-io/n2n-memory)](https://nodejs.org)
+[![N2N Studio](https://datafrog.io/badges/n2n-studio.svg)](https://github.com/n2ns)
+[![DataFrog.io](https://datafrog.io/badges/datafrog.svg)](https://datafrog.io)
+
+[中文版](./docs/README_zh.md)
 
 ---
 
-<a name="english"></a>
-## English
+> **Context as code. Memory as asset.**
 
 A specialized MCP server designed to solve "memory pollution" during AI-assisted cross-project development. It persists AI's cognitive fragments directly within each project's own directory.
 
@@ -14,6 +20,8 @@ A specialized MCP server designed to solve "memory pollution" during AI-assisted
 - **Git-Friendly**: JSON data is automatically sorted by key to generate clean and readable `git diff`.
 - **Tool Agnostic**: Uses the `.mcp` naming convention, not tied to any specific AI brand or IDE plugin.
 - **Assets for Your Code**: Memory stays with your code; team members can share AI's understanding of the architecture by simply pulling the repository.
+- **Universal Compatibility**: Works with all MCP-enabled models including **Claude 4.5**, **Gemini 3 Pro/Flash**, **GPT-5/5.2**, and **DeepSeek V3.2**.
+- **Privacy-First**: Built with security by design, keeping your data local and isolated.
 
 ### 🚀 Quick Start
 
@@ -53,73 +61,29 @@ This service is path-driven. AI assistants should pay attention to:
 - `n2n_add_entities`: Create new entities.
 - `n2n_add_observations`: Append observations or facts.
 - `n2n_create_relations`: Establish connections between entities.
-- `n2n_read_graph`: Read the entire knowledge graph.
-- `n2n_search`: Search the graph via keywords (names, types, observations).
+- `n2n_read_graph`: Read project memory and active context (Supports `summaryMode` and `pagination`).
+- `n2n_get_graph_summary`: Quickly fetch a lightweight index of all entities (Supports `pagination`).
+- `n2n_update_context`: Update current task status and next steps.
+- `n2n_search`: Search the graph via keywords (Supports `pagination`).
+- `n2n_open_nodes`: Retrieve specific entities by name.
+
+### 🗺️ Future Roadmap
+- **Semantic Search**: Integration of minimalist Vector Embeddings for fuzzy memory retrieval.
+- **Ontology Enforcement**: Optional schema for relation type consistency.
+- **Time Travel**: Versioned snapshots for memory rollback.
 
 ---
 
-<a name="中文"></a>
-## 中文
+## 📖 Related Docs
 
-这是一个专为解决 AI 跨项目开发时“记忆污染”而设计的 MCP 服务。它将 AI 的认知碎片持久化在每个项目自己的目录下。
+- **[Design Solution](./docs/DESIGN.md)**: Why project-level isolation?
+- **[API Reference](./docs/API_REFERENCE.md)**: Tool descriptions and schema.
+- **[Development](./docs/DEVELOPMENT.md)**: How to build, test and extend.
+- **[Changelog](./CHANGELOG.md)**: Version history and incident recovery.
 
-### 🌟 核心亮点
-- **项目级物理隔离**: 记忆文件存储在 `[项目根目录]/.mcp/memory.json`。
-- **Git 版本可控**: 自动对 JSON 数据进行字典序排序，生成清晰的 `git diff`。
-- **工具中立**: 使用 `.mcp` 命名，不绑定任何特定 AI 品牌或 IDE 插件。
-- **知识资产化**: 记忆随代码走，团队成员拉取仓库即可共享 AI 对架构的理解。
-
-### 🚀 快速配置
-
-#### 1. JSON 配置 (IDE / Claude Desktop)
-
-推荐使用 `npx` 模式直接运行：
-
-##### Claude Desktop
-配置文件路径: `%APPDATA%\Claude\claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "n2n-memory": {
-      "command": "npx",
-      "args": ["-y", "@datafrog-io/n2n-memory"]
-    }
-  }
-}
-```
-
-##### Cursor / VSCode (MCP 插件)
-在 MCP 设置面板中添加：
-- **Name**: `n2n-memory`
-- **Type**: `command`
-- **Command**: `npx -y @datafrog-io/n2n-memory`
-
-#### 2. 使用指南 (Usage Guide)
-
-本服务完全由路径驱动，AI 助手在调用工具时需要关注以下几点：
-
-1. **绝对路径**: 调用任何 `n2n_*` 工具时，必须传入当前项目根目录的**绝对路径**（`projectPath`）。
-2. **自动存储**: 记忆将自动保存在 `[项目路径]/.mcp/memory.json`。
-3. **协作共享**: 建议将 `.mcp/memory.json` 提交至 Git 仓库，以便团队成员共享知识图谱。
-
-##### 常用工具示例：
-- `n2n_add_entities`: 创建新实体。
-- `n2n_add_observations`: 追加观测事实。
-- `n2n_create_relations`: 建立实体间联系。
-- `n2n_read_graph`: 读取完整图谱。
-- `n2n_search`: 关键词搜索图谱（支持实体名、类型、观测事实）。
+## 📄 License
+This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
-## 📖 Related Docs | 文档指引
-
-- **[Design Solution | 设计方案](./docs/DESIGN.md)**: Why project-level isolation?
-- **[API Reference | API 参考手册](./docs/API_REFERENCE.md)**: Tool descriptions and schema.
-- **[Development | 开发指南](./docs/DEVELOPMENT.md)**: How to build, test and extend.
-
-## 📄 License | 许可证
-This project is licensed under the [MIT License](./LICENSE). | 本项目采用 [MIT 许可证](./LICENSE)。
-
----
-**N2N Studio [@n2ns](https://github.com/n2ns)**
+**N2N Studio** — The AI Innovation Lab of [DataFrog.io](https://datafrog.io).

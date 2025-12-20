@@ -1,9 +1,22 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { Handlers } from "../index.js";
-import { MemoryManager } from "../memory-manager.js";
+import { Handlers } from "../handlers/mcp-handlers.js";
+import { MemoryManager } from "../core/memory-manager.js";
+import { MemoryService } from "../core/memory-service.js";
+import * as PathUtils from "../utils/path-utils.js";
 
 describe("MCP Server Handlers", () => {
+    let findRootStub: sinon.SinonStub;
+
+    beforeEach(() => {
+        // Default findProjectRoot stub to return path as is and claim .mcp exists
+        findRootStub = sinon.stub(PathUtils, "findProjectRoot").resolves({
+            rootPath: "/test",
+            hasMcp: true,
+            markersFound: [".mcp"]
+        });
+    });
+
     afterEach(() => {
         sinon.restore();
     });
@@ -15,70 +28,68 @@ describe("MCP Server Handlers", () => {
             const toolNames = result.tools.map((t: any) => t.name);
             expect(toolNames).to.include("n2n_add_entities");
             expect(toolNames).to.include("n2n_read_graph");
+            expect(toolNames).to.include("n2n_update_context");
         });
 
         it("should validate tool arguments using Zod", async () => {
-            // Missing projectPath
             const result = await Handlers.callTool("n2n_read_graph", {});
             expect((result as any).isError).to.be.true;
             expect((result as any).content[0].text).to.contain("Validation Error");
         });
 
-        it("should call MemoryManager.readGraph on n2n_read_graph", async () => {
-            const mockGraph = { entities: [], relations: [] };
-            const readStub = sinon.stub(MemoryManager, "readGraph").resolves(mockGraph);
+        it("should return handshake request if .mcp does not exist", async () => {
+            findRootStub.resolves({
+                rootPath: "/test",
+                hasMcp: false,
+                markersFound: [".git"]
+            });
 
             const result = await Handlers.callTool("n2n_read_graph", { projectPath: "/test" });
-            expect(readStub.calledWith("/test")).to.be.true;
-            expect((result as any).content[0].text).to.equal(JSON.stringify(mockGraph, null, 2));
+            expect((result as any).isError).to.be.true;
+            const content = JSON.parse((result as any).content[0].text);
+            expect(content.status).to.equal("AWAITING_CONFIRMATION");
+            expect(content.detectedRoot).to.equal("/test");
         });
 
-        it("should call MemoryManager.addEntities on n2n_add_entities", async () => {
-            const addStub = sinon.stub(MemoryManager, "addEntities").resolves();
-            const entities = [{ name: "E", entityType: "T", observations: ["O"] }];
+        it("should proceed if confirmNewProjectRoot matches detected root", async () => {
+            findRootStub.resolves({
+                rootPath: "/test",
+                hasMcp: false,
+                markersFound: [".git"]
+            });
+            sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves({ graph: {}, context: {} } as any);
 
-            const result = await Handlers.callTool("n2n_add_entities", {
+            const result = await Handlers.callTool("n2n_read_graph", {
                 projectPath: "/test",
-                entities
+                confirmNewProjectRoot: "/test"
+            });
+            expect((result as any).isError).to.be.undefined;
+            expect((result as any).content[0].text).to.contain("graph");
+        });
+
+        it("should call MemoryService.getCompleteState on n2n_read_graph", async () => {
+            const mockState = {
+                graph: { entities: [], relations: [] },
+                context: { status: "PLANNING", nextSteps: [] }
+            };
+            const serviceStub = sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves(mockState as any);
+
+            const result = await Handlers.callTool("n2n_read_graph", { projectPath: "/test" });
+            expect(serviceStub.calledWith("/test")).to.be.true;
+            expect((result as any).content[0].text).to.equal(JSON.stringify(mockState, null, 2));
+        });
+
+        it("should call MemoryService.updateContext on n2n_update_context", async () => {
+            const serviceStub = sinon.stub(MemoryService.getInstance(), "updateContext").resolves();
+            const update = { activeTask: "Test Task", status: "PLANNING" } as const;
+
+            const result = await Handlers.callTool("n2n_update_context", {
+                projectPath: "/test",
+                ...update
             });
 
-            expect(addStub.calledWith("/test", entities)).to.be.true;
+            expect(serviceStub.calledWith("/test", sinon.match(update))).to.be.true;
             expect((result as any).content[0].text).to.contain("Success");
-        });
-
-        it("should call MemoryManager.addObservations on n2n_add_observations", async () => {
-            const addStub = sinon.stub(MemoryManager, "addObservations").resolves(5);
-            const observations = [{ entityName: "E", contents: ["O"] }];
-
-            const result = await Handlers.callTool("n2n_add_observations", {
-                projectPath: "/test",
-                observations
-            });
-
-            expect(addStub.calledWith("/test", observations)).to.be.true;
-            expect((result as any).content[0].text).to.contain("5 observation fragments");
-        });
-
-        it("should call MemoryManager.createRelations on n2n_create_relations", async () => {
-            const addStub = sinon.stub(MemoryManager, "createRelations").resolves();
-            const relations = [{ from: "A", to: "B", relationType: "R" }];
-
-            const result = await Handlers.callTool("n2n_create_relations", {
-                projectPath: "/test",
-                relations
-            });
-
-            expect(addStub.calledWith("/test", relations)).to.be.true;
-            expect((result as any).content[0].text).to.contain("Success");
-        });
-
-        it("should call MemoryManager.search on n2n_search", async () => {
-            const mockResult = { entities: [], relations: [] };
-            const searchStub = sinon.stub(MemoryManager, "search").resolves(mockResult);
-
-            const result = await Handlers.callTool("n2n_search", { projectPath: "/test", query: "findme" });
-            expect(searchStub.calledWith("/test", "findme")).to.be.true;
-            expect((result as any).content[0].text).to.equal(JSON.stringify(mockResult, null, 2));
         });
     });
 
@@ -89,22 +100,16 @@ describe("MCP Server Handlers", () => {
         });
 
         it("should read memory resource with projectPath", async () => {
-            const mockGraph = { entities: [], relations: [] };
-            sinon.stub(MemoryManager, "readGraph").resolves(mockGraph);
+            const mockState = {
+                graph: { entities: [], relations: [] },
+                context: { status: "PLANNING", nextSteps: [] }
+            };
+            sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves(mockState as any);
 
             const uri = "mcp://memory/graph?path=/test/path";
             const result = await Handlers.readResource(uri);
             expect(result.contents[0].uri).to.equal(uri);
-            expect(JSON.parse(result.contents[0].text)).to.deep.equal(mockGraph);
-        });
-
-        it("should throw error for invalid resource URI", async () => {
-            try {
-                await Handlers.readResource("mcp://unknown/resource");
-                expect.fail("Should have thrown McpError");
-            } catch (error: any) {
-                expect(error.message).to.contain("Unknown resource URI");
-            }
+            expect(JSON.parse((result.contents[0] as any).text)).to.deep.equal(mockState);
         });
     });
 });

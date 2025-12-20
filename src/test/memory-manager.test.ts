@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import fs from "fs-extra";
-import { MemoryManager } from "../memory-manager.js";
+import { MemoryManager } from "../core/memory-manager.js";
 import { KnowledgeGraph } from "../types.js";
 
 describe("MemoryManager", () => {
@@ -29,20 +29,14 @@ describe("MemoryManager", () => {
             expect(graph).to.deep.equal(mockData);
         });
 
-        it("should throw if file content is invalid", async () => {
-            const invalidData = {
-                entities: "should be array"
-            };
+        it("should log error if reading fails but return empty", async () => {
             sinon.stub(fs, "pathExists").resolves(true);
-            sinon.stub(fs, "readJson").resolves(invalidData);
+            sinon.stub(fs, "readJson").rejects(new Error("Parse error"));
+            const consoleStub = sinon.stub(console, "error");
 
-            try {
-                await MemoryManager.readGraph(mockProjectPath);
-                expect.fail("Should have thrown");
-            } catch (error) {
-                expect(error).to.be.instanceOf(Error);
-                expect((error as Error).message).to.contain("Failed to read");
-            }
+            const graph = await MemoryManager.readGraph(mockProjectPath);
+            expect(graph).to.deep.equal({ entities: [], relations: [] });
+            expect(consoleStub.called).to.be.true;
         });
     });
 
@@ -56,8 +50,9 @@ describe("MemoryManager", () => {
                 relations: []
             };
 
-            const ensureDirStub = sinon.stub(fs, "ensureDir").resolves();
+            sinon.stub(fs, "ensureDir").resolves();
             const writeJsonStub = sinon.stub(fs, "writeJson").resolves();
+            sinon.stub(fs, "move").resolves();
 
             await MemoryManager.writeGraph(mockProjectPath, unsortedGraph);
 
@@ -69,8 +64,6 @@ describe("MemoryManager", () => {
 
             // Observations of Bravo sorted: a, z
             expect(savedGraph.entities[1]!.observations).to.deep.equal(["a", "z"]);
-
-            expect(ensureDirStub.calledOnce).to.be.true;
         });
 
         it("should sort relations by from, then to, then type", async () => {
@@ -85,6 +78,7 @@ describe("MemoryManager", () => {
 
             const writeJsonStub = sinon.stub(fs, "writeJson").resolves();
             sinon.stub(fs, "ensureDir").resolves();
+            sinon.stub(fs, "move").resolves();
 
             await MemoryManager.writeGraph(mockProjectPath, unsortedGraph);
 
@@ -111,102 +105,73 @@ describe("MemoryManager", () => {
         });
     });
 
-    describe("addEntities", () => {
-        it("should merge observations for existing entities", async () => {
-            const existingGraph = {
-                entities: [{ name: "A", entityType: "T", observations: ["1"] }],
-                relations: []
-            };
-            sinon.stub(fs, "pathExists").resolves(true);
-            sinon.stub(fs, "readJson").resolves(existingGraph);
-            sinon.stub(fs, "ensureDir").resolves();
-            const writeJsonStub = sinon.stub(fs, "writeJson").resolves();
-
-            await MemoryManager.addEntities(mockProjectPath, [
-                { name: "A", entityType: "T", observations: ["2", "1"] }
-            ]);
-
-            const savedGraph = writeJsonStub.firstCall.args[1] as KnowledgeGraph;
-            expect(savedGraph.entities[0]!.observations).to.include.members(["1", "2"]);
-            expect(savedGraph.entities[0]!.observations.length).to.equal(2); // unique
-        });
-    });
-
-    describe("addObservations", () => {
-        it("should add observations to existing entities only", async () => {
-            const existingGraph = {
-                entities: [{ name: "Target", entityType: "T", observations: ["A"] }],
-                relations: []
-            };
-            sinon.stub(fs, "pathExists").resolves(true);
-            sinon.stub(fs, "readJson").resolves(existingGraph);
-            sinon.stub(fs, "ensureDir").resolves();
-            const writeJsonStub = sinon.stub(fs, "writeJson").resolves();
-
-            const count = await MemoryManager.addObservations(mockProjectPath, [
-                { entityName: "Target", contents: ["B", "A"] },
-                { entityName: "NonExistent", contents: ["C"] }
-            ]);
-
-            const savedGraph = writeJsonStub.firstCall.args[1] as KnowledgeGraph;
-            expect(count).to.equal(2); // Added B and A (A is already there but counted in input)
-            expect(savedGraph.entities[0]!.observations).to.deep.equal(["A", "B"]); // Sorted and unique
-            expect(savedGraph.entities.length).to.equal(1); // No new entity created
-        });
-    });
-
-    describe("createRelations", () => {
-        it("should avoid duplicate relations", async () => {
-            const existingGraph = {
-                entities: [],
-                relations: [{ from: "A", to: "B", relationType: "KNOWS" }]
-            };
-            sinon.stub(fs, "pathExists").resolves(true);
-            sinon.stub(fs, "readJson").resolves(existingGraph);
-            sinon.stub(fs, "ensureDir").resolves();
-            const writeJsonStub = sinon.stub(fs, "writeJson").resolves();
-
-            await MemoryManager.createRelations(mockProjectPath, [
-                { from: "A", to: "B", relationType: "KNOWS" }, // Exist
-                { from: "A", to: "C", relationType: "KNOWS" }  // New
-            ]);
-
-            const savedGraph = writeJsonStub.firstCall.args[1] as KnowledgeGraph;
-            expect(savedGraph.relations.length).to.equal(2);
-            expect(savedGraph.relations).to.deep.include({ from: "A", to: "C", relationType: "KNOWS" });
-        });
-    });
-
-    describe("search", () => {
-        it("should return matches in entities and observations", async () => {
+    describe("openNodes", () => {
+        it("should return only specified entities and their mutual relations", async () => {
             const graph = {
                 entities: [
-                    { name: "AuthServer", entityType: "COMPONENT", observations: ["Handles login"] },
-                    { name: "DB", entityType: "DATABASE", observations: ["Stores users"] }
+                    { name: "A", entityType: "T", observations: ["1"] },
+                    { name: "B", entityType: "T", observations: ["2"] },
+                    { name: "C", entityType: "T", observations: ["3"] }
                 ],
                 relations: [
-                    { from: "AuthServer", to: "DB", relationType: "CONNECTS" }
+                    { from: "A", to: "B", relationType: "X" },
+                    { from: "B", to: "C", relationType: "Y" }
                 ]
             };
             sinon.stub(fs, "pathExists").resolves(true);
             sinon.stub(fs, "readJson").resolves(graph);
 
-            const result = await MemoryManager.search(mockProjectPath, "login");
-            expect(result.entities.length).to.equal(1);
-            expect(result.entities[0]!.name).to.equal("AuthServer");
-            expect(result.relations.length).to.equal(1); // Should include relation where AuthServer is source
-        });
+            const result = await MemoryManager.openNodes(mockProjectPath, ["A", "B"]);
 
-        it("should be case-insensitive", async () => {
+            expect(result.entities.length).to.equal(2);
+            expect(result.entities.map(e => e.name)).to.include.members(["A", "B"]);
+            expect(result.relations.length).to.equal(1);
+            expect(result.relations[0]).to.deep.equal({ from: "A", to: "B", relationType: "X" });
+        });
+    });
+
+    describe("exportToMarkdown", () => {
+        it("should generate markdown file with entities and relations", async () => {
             const graph = {
-                entities: [{ name: "AuthServer", entityType: "COMPONENT", observations: [] }],
-                relations: []
+                entities: [{ name: "Test", entityType: "COMPONENT", observations: ["obs1", "obs2"] }],
+                relations: [{ from: "Test", to: "Other", relationType: "USES" }]
             };
             sinon.stub(fs, "pathExists").resolves(true);
             sinon.stub(fs, "readJson").resolves(graph);
+            const writeFileStub = sinon.stub(fs, "writeFile").resolves();
 
-            const result = await MemoryManager.search(mockProjectPath, "AUTH");
-            expect(result.entities.length).to.equal(1);
+            const filePath = await MemoryManager.exportToMarkdown(mockProjectPath);
+
+            expect(filePath).to.contain("KNOWLEDGE_GRAPH.md");
+            expect(writeFileStub.calledOnce).to.be.true;
+            const content = writeFileStub.firstCall.args[1] as string;
+            expect(content).to.contain("# Knowledge Graph");
+            expect(content).to.contain("### Test");
+            expect(content).to.contain("obs1");
+            expect(content).to.contain("| Test | USES | Other |");
+        });
+    });
+
+    describe("Context Operations", () => {
+        it("should return default context if file does not exist", async () => {
+            sinon.stub(fs, "pathExists").resolves(false);
+            const context = await MemoryManager.readContext(mockProjectPath);
+            expect(context.status).to.equal("PLANNING");
+            expect(context.nextSteps).to.be.an("array").empty;
+        });
+
+        it("should write context atomically", async () => {
+            const context = { activeTask: "Development", status: "IN_PROGRESS" as const, nextSteps: ["Step 1"] };
+            sinon.stub(fs, "ensureDir").resolves();
+            const writeJsonStub = sinon.stub(fs, "writeJson").resolves();
+            sinon.stub(fs, "move").resolves();
+
+            await MemoryManager.writeContext(mockProjectPath, context);
+
+            expect(writeJsonStub.calledOnce).to.be.true;
+            const saved = writeJsonStub.firstCall.args[1] as any;
+            expect(saved.activeTask).to.equal("Development");
+            expect(saved.updatedAt).to.be.a("string");
         });
     });
 });

@@ -1,52 +1,59 @@
-# n2n-memory 开发方案
+# n2n-memory Design Solution
 
-## 1. 背景与目标
-解决全局 MCP Memory Server 导致的跨项目“记忆污染”与幻觉问题。通过将 AI 的认知碎片直接持久化在项目源码目录下，实现项目级的物理隔离与知识共享。
+[中文版](./DESIGN_zh.md)
 
-本项目旨在开发一个高度简约、工具中立、且对版本管理友好的 N2N 记忆服务。
+---
 
-## 2. 核心架构设计
+## 1. Context & Objectives
+To solve the "memory pollution" and hallucination issues caused by global MCP Memory Servers. By persisting AI cognitive fragments directly within the project source directory, we achieve project-level physical isolation and shared knowledge.
 
-### 2.1 存储逻辑
-- **存储位置**: `[项目根目录]/.mcp/memory.json`
-- **中立性**: 采用 `.mcp` 命名以脱离特定 AI 助手或 IDE 插件的品牌绑定。
-- **物理隔离**: 一个项目一个文件，互不干扰，完全随项目代码同步。
+This project aims to develop a minimalist, tool-agnostic, and version-control-friendly memory service.
 
-### 2.2 交互规范
-- **寻址方式**: AI 助理在调用工具时，必须传递当前工作区的**绝对路径 (Absolute Path)**。
-- **无状态设计**: MCP Server 进程本身不维护任何路径状态，仅作为由路径驱动的存取器。
-- **自动初始化**: 若目标路径下的 `.mcp/memory.json` 不存在，Server 应自动创建标准的空图谱结构。
+## 2. Core Architecture
 
-## 3. 数据结构与检索
+### 2.1 Storage Logic
+- **Location**: `[Project Root]/.mcp/memory.json`
+- **Agnosticism**: Uses the `.mcp` naming convention to avoid branding ties to specific AI assistants or IDE plugins.
+- **Physical Isolation**: One file per project, synchronized with project code.
 
-### 3.1 极简数据格式
-JSON 内部**不包含**版本号、元数据、作者信息或时间戳。仅保留核心知识图谱数据（Entities & Relations），通过 Git 记录实现版本审计。
+### 2.2 Interaction & Security
+- **Strict Root Enforcement**: Cancels recursive parent searches. AI must operate from the recognized project root or workspace top-level.
+- **Handshake Protocol**: Requires explicit confirmation (`confirmNewProjectRoot`) for new project initialization to prevent directory pollution.
+- **Dual-Buffer Architecture**:
+    - **Hot State (`context.json`)**: Volatile, high-frequency updates (tasks, status).
+    - **Cold State (`memory.json`)**: Durable, structured knowledge graph (entities, relations).
 
-### 3.2 Git 友好型保存策略
-为确保 `git diff` 可读：
-1. **强制排序**: 对 `entities` 和 `relations` 执行字典序排序。
-2. **规范缩进**: 统一使用 2 空格缩进。
+## 3. Data Structure & Retrieval
 
-### 3.3 分级检索机制 (Tiered Retrieval)
-- **一级：精准检索**: 基于实体 ID 的 O(1) 匹配，保证逻辑严密性。
-- **二级：语义理解**: AI 助手加载全量 JSON 后，利用模型自身的长上下文理解力处理模糊匹配，无需引入向量数据库。
+### 3.1 Minimalist Data Format
+The JSON does **not** include version numbers, metadata, author info, or timestamps. Only core knowledge graph data (Entities & Relations) is kept, with auditing achieved via Git history.
 
-## 4. 开发语言效率分析 (Go vs. Node.js vs. Python)
+### 3.2 Git-Friendly Saving Strategy
+To ensure readable `git diff`:
+1. **Mandatory Sorting**: Lexicographical sorting for `entities` and `relations`.
+2. **Standard Indentation**: Uniform use of 2-space indentation.
 
-### 4.1 Node.js (TypeScript) - [默认推荐]
-- **效率**: 开发效率极高，官方 SDK 最成熟。
-- **性能**: 处理单个项目的 JSON（通常 < 10MB）绰绰有余。
-- **分发**: 通过 `npx` 可实现免安装运行。
+### 3.3 Scalable Retrieval Mechanism
+- **Pagination (Limit/Offset)**: Supports chunked reading for massive graphs to stay within token limits.
+- **Summary Mode**: Optional retrieval of entity indexes without detailed observations.
+- **Precise Open**: `open_nodes` for fetching specific high-detail context.
 
-### 4.2 Go - [极致性能选型]
-- **效率**: 运行效率最高，内存占用极低（仅需几 MB）。
-- **分发**: 编译为单一二进制文件（Single Binary），部署最干净，适合对 IDE 性能有极致要求的用户。
-- **场景**: 若未来需要处理拥有数万个节点的超大型知识图谱，Go 是唯一选择。
+## 4. Language Efficiency Analysis (Go vs. Node.js vs. Python)
 
-### 4.3 Python - [不推荐]
-- **缺点**: 环境依赖重，分发困难，对于简单的、非 AI 计算密集的 I/O 任务显得过于沉重。
+### 4.1 Node.js (TypeScript) - [Default Recommendation]
+- **Efficiency**: Rapid development, most mature official SDK.
+- **Performance**: More than sufficient for per-project JSON files (typically < 10MB).
+- **Distribution**: Zero-install execution via `npx`.
 
-## 5. 优势总结
-- **资产化**: 记忆即源码，可审计、可共享。
-- **零漂移**: 物理隔离，杜绝跨项目污染。
-- **确定性**: 结构化数据比高性能向量数据库更适合高精度的编码决策场景。
+### 4.2 Go - [Performance Selection]
+- **Efficiency**: Highest runtime efficiency, minimal memory footprint (only a few MBs).
+- **Distribution**: Single binary compilation for clean deployment, ideal for power users.
+- **Scenario**: The only choice if future scalability requires handling ultra-large graphs with tens of thousands of nodes.
+
+### 4.3 Python - [Not Recommended]
+- **Cons**: Heavy dependencies, difficult distribution, too cumbersome for simple I/O tasks.
+
+## 5. Summary of Benefits
+- **Assetization**: Memory is source code—auditable and shareable.
+- **Zero Drift**: Physical isolation eliminates cross-project pollution.
+- **Determinism**: Structured data is better suited for high-precision coding decisions than vector databases.
