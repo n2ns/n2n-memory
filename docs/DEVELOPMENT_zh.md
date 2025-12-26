@@ -7,7 +7,7 @@
 本手册记录了 N2N Memory MCP Server 的日常开发、测试及构建流程。
 
 ## 开发环境
-- **Runtime**: Node.js v24.x+ (推荐以支持 Trusted Publishing)
+- **Runtime**: Node.js v20+ (推荐 LTS 版本)
 - **Language**: TypeScript
 - **Package Manager**: npm
 

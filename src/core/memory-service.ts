@@ -220,7 +220,7 @@ export class MemoryService {
         const paginatedEntities = graph.entities.slice(offset, offset + limit);
         const isTruncated = (offset + limit) < totalEntityCount;
 
-        let entities = options.summaryMode
+        const entities = options.summaryMode
             ? paginatedEntities.map(e => ({ name: e.name, entityType: e.entityType, observations: [] }))
             : paginatedEntities;
 

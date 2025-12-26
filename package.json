@@ -1,6 +1,6 @@
 {
   "name": "@datafrog-io/n2n-memory",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Project-local knowledge-graph memory MCP server for AI context isolation.",
   "main": "build/index.js",
   "bin": {
@@ -29,8 +29,8 @@
   "author": "DataFrog IO",
   "license": "MIT",
   "engines": {
-    "node": ">=24.0.0",
-    "npm": ">=11.5.1"
+    "node": ">=20",
+    "npm": ">=10.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",

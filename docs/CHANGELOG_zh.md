@@ -13,7 +13,7 @@
 - 初始化 `CHANGELOG.md` 以追踪项目演进和技术发现。
 - **全文档双语化**：包括 API 参考、设计方案和开发指南，均已实现中英双语关联。
 - **基础设施强化**：
-  - 在 `package.json` 中增加了 `engines` 字段，明确要求 Node.js >= 24 和 npm >= 11.5.1。
+  - 更新 `package.json` 中的 `engines` 字段，要求 Node.js >= 20 和 npm >= 10（与 MCP SDK 保持一致）。
   - 在 MCP Server 启动时增加了环境检查逻辑，主动提醒版本不匹配风险。
 - **依赖维护**：
   - 将所有依赖项升级至最新的稳定版本（包括 `sinon`, `typescript`, `eslint` 等）。
@@ -45,10 +45,9 @@
   - 优化了测试套件兼容性，修复了模块化后的路径引用问题。
 
 ### 修复 (Fixed)
-- **NPM 发布兼容性**：识别并记录了 Trusted Publishing (OIDC) 的关键要求。
-  - **发现**：NPM CLI 10.x 版本（Node.js 22 附带）在尝试基于 OIDC 发布时，即使配置正确也会返回 `404 Not Found` 错误。
-  - **要求**：必须使用 **NPM CLI 11.5.1+** 或 Node.js 24。
-  - **规避方案**：在 CI/CD 工作流中增加 `npm install -g npm@latest` 步骤。
+- **NPM 发布兼容性**：识别并记录了 Trusted Publishing (OIDC) 的要求。
+  - **发现**：NPM CLI 10.x 版本在 OIDC 发布时可能存在问题。
+  - **建议**：使用 Node.js 20+ LTS 配合 npm 10+ 以确保发布稳定性。
 
 ## [1.0.0] - 2024-12-19 之前
 

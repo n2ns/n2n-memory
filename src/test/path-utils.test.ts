@@ -18,54 +18,59 @@ describe("PathUtils - findProjectRoot", () => {
 
     it("should find root if .git exists in current dir", async () => {
         await fs.ensureDir(path.join(tempDir, ".git"));
-        const root = await findProjectRoot(tempDir);
-        expect(root).to.equal(path.resolve(tempDir));
+        const result = await findProjectRoot(tempDir);
+        expect(result.rootPath).to.equal(path.resolve(tempDir));
+        expect(result.markersFound).to.include(".git");
     });
 
-    it("should find root if package.json exists 1 level up", async () => {
+    it("should find root if package.json exists in current dir", async () => {
         await fs.writeJson(path.join(tempDir, "package.json"), { name: "test" });
-        const subDir = path.join(tempDir, "src");
-        await fs.ensureDir(subDir);
-
-        const root = await findProjectRoot(subDir);
-        expect(root).to.equal(path.resolve(tempDir));
+        const result = await findProjectRoot(tempDir);
+        expect(result.rootPath).to.equal(path.resolve(tempDir));
+        expect(result.markersFound).to.include("package.json");
     });
 
-    it("should find root if README.md exists 2 levels up", async () => {
+    it("should find root if README.md exists in current dir", async () => {
         await fs.writeFile(path.join(tempDir, "README.md"), "# Test");
-        const level1 = path.join(tempDir, "src");
-        const level2 = path.join(level1, "components");
-        await fs.ensureDir(level2);
-
-        const root = await findProjectRoot(level2);
-        expect(root).to.equal(path.resolve(tempDir));
+        const result = await findProjectRoot(tempDir);
+        expect(result.rootPath).to.equal(path.resolve(tempDir));
+        expect(result.markersFound).to.include("README.md");
     });
 
-    it("should throw error if no markers found within 2 levels", async () => {
-        const level1 = path.join(tempDir, "level1");
-        const level2 = path.join(level1, "level2");
-        const level3 = path.join(level2, "level3");
-        await fs.ensureDir(level3);
+    it("should throw error if no markers found in directory", async () => {
+        const emptyDir = path.join(tempDir, "empty");
+        await fs.ensureDir(emptyDir);
 
         try {
-            await findProjectRoot(level3);
+            await findProjectRoot(emptyDir);
             expect.fail("Should have thrown");
         } catch (error) {
             expect((error as Error).message).to.contain("Directory Not Recognized as a Project");
         }
     });
 
-    it("should use cache for subsequent calls", async () => {
+    it("should detect .mcp marker and set hasMcp to true", async () => {
+        await fs.ensureDir(path.join(tempDir, ".mcp"));
+        const result = await findProjectRoot(tempDir);
+        expect(result.hasMcp).to.be.true;
+        expect(result.markersFound).to.include(".mcp");
+    });
+
+    it("should set hasMcp to false if .mcp does not exist", async () => {
         await fs.ensureDir(path.join(tempDir, ".git"));
+        const result = await findProjectRoot(tempDir);
+        expect(result.hasMcp).to.be.false;
+        expect(result.markersFound).to.not.include(".mcp");
+    });
 
-        // First call (I/O)
-        const root1 = await findProjectRoot(tempDir);
-
-        // Remove .git to prove cache works
-        await fs.remove(path.join(tempDir, ".git"));
-
-        // Second call (Cache)
-        const root2 = await findProjectRoot(tempDir);
-        expect(root2).to.equal(root1);
+    it("should collect multiple markers if present", async () => {
+        await fs.ensureDir(path.join(tempDir, ".git"));
+        await fs.writeJson(path.join(tempDir, "package.json"), { name: "test" });
+        await fs.writeJson(path.join(tempDir, "tsconfig.json"), { compilerOptions: {} });
+        
+        const result = await findProjectRoot(tempDir);
+        expect(result.markersFound).to.include(".git");
+        expect(result.markersFound).to.include("package.json");
+        expect(result.markersFound).to.include("tsconfig.json");
     });
 });

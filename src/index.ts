@@ -16,6 +16,11 @@ const pkg = require("../package.json");
 export const server = new McpServer({
     name: "n2n-memory",
     version: pkg.version,
+}, {
+    capabilities: {
+        tools: {},
+        resources: {}
+    }
 });
 
 // Register all tools and resources defined in handlers

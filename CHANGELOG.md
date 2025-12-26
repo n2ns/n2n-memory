@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
   - Separated `README` into English and Chinese.
   - All supplemental docs (`API_REFERENCE`, `DESIGN`, `DEVELOPMENT`, `CHANGELOG`) are now bilingual and cross-linked.
 - **Infrastructure Hardening**:
-  - Added `engines` field to `package.json` to enforce Node.js >= 24 and npm >= 11.5.1.
+  - Updated `engines` field in `package.json` to require Node.js >= 20 and npm >= 10 (aligned with MCP SDK).
   - Implemented runtime environment check (Node & npm) during MCP server startup to prevent deployment issues.
 - **Dependency Maintenance**:
   - Upgraded all dependencies to their latest stable versions (including `sinon`, `typescript`, `eslint`, etc.).
@@ -47,10 +47,9 @@ All notable changes to this project will be documented in this file.
 - Initial `CHANGELOG.md` to track project evolution and technical discoveries.
 
 ### Fixed
-- **NPM Publishing Compatibility**: Identified and documented a critical requirement for Trusted Publishing (OIDC).
-  - **Discovery**: NPM CLI version 10.x (shipped with Node.js 22) fails with `404 Not Found` when attempting OIDC-based publishing, even if the configuration is correct.
-  - **Requirement**: Must use **NPM CLI 11.5.1+** or Node.js 24.
-  - **Mitigation**: Added `npm install -g npm@latest` recommendation to CI/CD workflows.
+- **NPM Publishing Compatibility**: Identified and documented requirements for Trusted Publishing (OIDC).
+  - **Discovery**: NPM CLI version 10.x may have issues with OIDC-based publishing.
+  - **Recommendation**: Use Node.js 20+ LTS with npm 10+ for reliable publishing.
 
 ## [1.0.0] - Prior to 2024-12-19
 

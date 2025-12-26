@@ -19,8 +19,8 @@ const ROOT_MARKERS = [
     ".gitignore"
 ];
 
-// Cache to store resolved roots to avoid redundant I/O (StartPath -> RootPath)
-const rootCache = new Map<string, string>();
+// Note: Caching was removed as the current implementation only checks the current directory.
+// If parent-directory traversal is re-added in the future, consider implementing a cache here.
 
 /**
  * Result of the project root discovery.
@@ -39,7 +39,7 @@ export interface RootDiscovery {
  */
 export async function findProjectRoot(startPath: string): Promise<RootDiscovery> {
     const absoluteStart = path.resolve(startPath);
-    let current = absoluteStart;
+    const current = absoluteStart;
 
     const foundMarkers: string[] = [];
     let hasMcp = false;

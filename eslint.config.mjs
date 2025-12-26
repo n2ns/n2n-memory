@@ -13,7 +13,11 @@ export default tseslint.config(
         },
         rules: {
             '@typescript-eslint/no-explicit-any': 'off', // Allowing any for now since it's used in handlers
-            '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+            '@typescript-eslint/no-unused-vars': ['warn', { 
+                argsIgnorePattern: '^_', 
+                varsIgnorePattern: '^_',
+                destructuredArrayIgnorePattern: '^_'
+            }],
         },
     },
     {

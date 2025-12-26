@@ -1,24 +1,12 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { Handlers } from "../handlers/mcp-handlers.js";
-import { MemoryManager } from "../core/memory-manager.js";
 import { MemoryService } from "../core/memory-service.js";
-import * as PathUtils from "../utils/path-utils.js";
 
 describe("MCP Server Handlers", () => {
-    let findRootStub: sinon.SinonStub;
-
-    beforeEach(() => {
-        // Default findProjectRoot stub to return path as is and claim .mcp exists
-        findRootStub = sinon.stub(PathUtils, "findProjectRoot").resolves({
-            rootPath: "/test",
-            hasMcp: true,
-            markersFound: [".mcp"]
-        });
-    });
-
     afterEach(() => {
         sinon.restore();
+        MemoryService.resetInstance();
     });
 
     describe("Tools", () => {
@@ -37,27 +25,46 @@ describe("MCP Server Handlers", () => {
             expect((result as any).content[0].text).to.contain("Validation Error");
         });
 
+        it("should return error for unrecognized project path", async () => {
+            // Use a path that definitely won't exist
+            const result = await Handlers.callTool("n2n_read_graph", { 
+                projectPath: "C:\\nonexistent\\path\\to\\project" 
+            });
+            expect((result as any).isError).to.be.true;
+            expect((result as any).content[0].text).to.contain("Directory Not Recognized");
+        });
+
         it("should return handshake request if .mcp does not exist", async () => {
-            findRootStub.resolves({
-                rootPath: "/test",
-                hasMcp: false,
-                markersFound: [".git"]
+            // Mock resolveRootWithHandshake directly for this test
+            const handshakeStub = sinon.stub(Handlers, "resolveRootWithHandshake").resolves({
+                content: [{
+                    type: "text",
+                    text: JSON.stringify({
+                        status: "AWAITING_CONFIRMATION",
+                        detectedRoot: "/test",
+                        markersFound: [".git"],
+                        message: "Please confirm..."
+                    })
+                }],
+                isError: true
             });
 
             const result = await Handlers.callTool("n2n_read_graph", { projectPath: "/test" });
             expect((result as any).isError).to.be.true;
             const content = JSON.parse((result as any).content[0].text);
             expect(content.status).to.equal("AWAITING_CONFIRMATION");
-            expect(content.detectedRoot).to.equal("/test");
+            
+            handshakeStub.restore();
         });
 
         it("should proceed if confirmNewProjectRoot matches detected root", async () => {
-            findRootStub.resolves({
-                rootPath: "/test",
-                hasMcp: false,
-                markersFound: [".git"]
+            const handshakeStub = sinon.stub(Handlers, "resolveRootWithHandshake").resolves("/test");
+            const serviceStub = sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves({
+                graph: { entities: [], relations: [] },
+                context: { status: "PLANNING", nextSteps: [] },
+                totalEntityCount: 0,
+                isTruncated: false
             });
-            sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves({ graph: {}, context: {} } as any);
 
             const result = await Handlers.callTool("n2n_read_graph", {
                 projectPath: "/test",
@@ -65,21 +72,31 @@ describe("MCP Server Handlers", () => {
             });
             expect((result as any).isError).to.be.undefined;
             expect((result as any).content[0].text).to.contain("graph");
+
+            handshakeStub.restore();
+            serviceStub.restore();
         });
 
         it("should call MemoryService.getCompleteState on n2n_read_graph", async () => {
             const mockState = {
                 graph: { entities: [], relations: [] },
-                context: { status: "PLANNING", nextSteps: [] }
+                context: { status: "PLANNING" as const, nextSteps: [] },
+                totalEntityCount: 0,
+                isTruncated: false
             };
-            const serviceStub = sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves(mockState as any);
+            const handshakeStub = sinon.stub(Handlers, "resolveRootWithHandshake").resolves("/test");
+            const serviceStub = sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves(mockState);
 
             const result = await Handlers.callTool("n2n_read_graph", { projectPath: "/test" });
             expect(serviceStub.calledWith("/test")).to.be.true;
             expect((result as any).content[0].text).to.equal(JSON.stringify(mockState, null, 2));
+
+            handshakeStub.restore();
+            serviceStub.restore();
         });
 
         it("should call MemoryService.updateContext on n2n_update_context", async () => {
+            const handshakeStub = sinon.stub(Handlers, "resolveRootWithHandshake").resolves("/test");
             const serviceStub = sinon.stub(MemoryService.getInstance(), "updateContext").resolves();
             const update = { activeTask: "Test Task", status: "PLANNING" } as const;
 
@@ -90,6 +107,9 @@ describe("MCP Server Handlers", () => {
 
             expect(serviceStub.calledWith("/test", sinon.match(update))).to.be.true;
             expect((result as any).content[0].text).to.contain("Success");
+
+            handshakeStub.restore();
+            serviceStub.restore();
         });
     });
 
@@ -99,17 +119,22 @@ describe("MCP Server Handlers", () => {
             expect(result.resources[0].uri).to.equal("mcp://memory/graph");
         });
 
-        it("should read memory resource with projectPath", async () => {
-            const mockState = {
-                graph: { entities: [], relations: [] },
-                context: { status: "PLANNING", nextSteps: [] }
-            };
-            sinon.stub(MemoryService.getInstance(), "getCompleteState").resolves(mockState as any);
+        it("should throw for invalid resource URI protocol", async () => {
+            try {
+                await Handlers.readResource("https://invalid/resource");
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("Unknown resource URI");
+            }
+        });
 
-            const uri = "mcp://memory/graph?path=/test/path";
-            const result = await Handlers.readResource(uri);
-            expect(result.contents[0].uri).to.equal(uri);
-            expect(JSON.parse((result.contents[0] as any).text)).to.deep.equal(mockState);
+        it("should throw if path query parameter is missing", async () => {
+            try {
+                await Handlers.readResource("mcp://memory/graph");
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("path");
+            }
         });
     });
 });

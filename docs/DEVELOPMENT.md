@@ -7,7 +7,7 @@
 This guide documents the daily development, testing, and build processes for the N2N Memory MCP Server.
 
 ## Development Environment
-- **Runtime**: Node.js v24.x+ (Recommended for Trusted Publishing support)
+- **Runtime**: Node.js v20+ (LTS recommended)
 - **Language**: TypeScript
 - **Package Manager**: npm
 

@@ -118,7 +118,7 @@ export const Handlers = {
         const root = await this.resolveRootWithHandshake(parsed);
         if (typeof root !== 'string') return root;
 
-        const { projectPath, confirmNewProjectRoot, ...updates } = parsed;
+        const { projectPath: _, confirmNewProjectRoot: __, ...updates } = parsed;
         await MemoryService.getInstance().updateContext(root, updates);
         return { content: [{ type: "text", text: `Success: Project context (hot-state) updated for root: ${root}` }] };
     },

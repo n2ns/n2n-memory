@@ -173,5 +173,156 @@ describe("MemoryManager", () => {
             expect(saved.activeTask).to.equal("Development");
             expect(saved.updatedAt).to.be.a("string");
         });
+
+        it("should throw error if context write fails", async () => {
+            const context = { status: "PLANNING" as const, nextSteps: [] };
+            sinon.stub(fs, "ensureDir").resolves();
+            sinon.stub(fs, "writeJson").rejects(new Error("Permission denied"));
+            sinon.stub(fs, "pathExists").resolves(false);
+
+            try {
+                await MemoryManager.writeContext(mockProjectPath, context);
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("Failed to write context");
+            }
+        });
+
+        it("should log error if context read fails but return default", async () => {
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").rejects(new Error("Corrupted file"));
+            const consoleStub = sinon.stub(console, "error");
+
+            const context = await MemoryManager.readContext(mockProjectPath);
+            expect(context.status).to.equal("PLANNING");
+            expect(consoleStub.called).to.be.true;
+        });
+    });
+
+    describe("openNodes - Edge Cases", () => {
+        it("should return empty result for empty names array", async () => {
+            const graph = {
+                entities: [{ name: "A", entityType: "T", observations: [] }],
+                relations: []
+            };
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves(graph);
+
+            const result = await MemoryManager.openNodes(mockProjectPath, []);
+
+            expect(result.entities).to.be.empty;
+            expect(result.relations).to.be.empty;
+        });
+
+        it("should return empty for non-existent entity names", async () => {
+            const graph = {
+                entities: [{ name: "A", entityType: "T", observations: [] }],
+                relations: []
+            };
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves(graph);
+
+            const result = await MemoryManager.openNodes(mockProjectPath, ["NonExistent"]);
+
+            expect(result.entities).to.be.empty;
+        });
+
+        it("should exclude relations where only one node matches", async () => {
+            const graph = {
+                entities: [
+                    { name: "A", entityType: "T", observations: [] },
+                    { name: "B", entityType: "T", observations: [] },
+                    { name: "C", entityType: "T", observations: [] }
+                ],
+                relations: [
+                    { from: "A", to: "B", relationType: "X" },
+                    { from: "A", to: "C", relationType: "Y" }
+                ]
+            };
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves(graph);
+
+            const result = await MemoryManager.openNodes(mockProjectPath, ["A", "B"]);
+
+            expect(result.relations).to.have.length(1);
+            expect(result.relations[0].to).to.equal("B");
+        });
+    });
+
+    describe("exportToMarkdown - Edge Cases", () => {
+        it("should handle empty graph gracefully", async () => {
+            const graph = { entities: [], relations: [] };
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves(graph);
+            const writeFileStub = sinon.stub(fs, "writeFile").resolves();
+
+            await MemoryManager.exportToMarkdown(mockProjectPath);
+
+            const content = writeFileStub.firstCall.args[1] as string;
+            expect(content).to.contain("_No entities found._");
+            expect(content).to.contain("_No relations found._");
+        });
+
+        it("should use custom output path when provided", async () => {
+            const graph = { entities: [], relations: [] };
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves(graph);
+            const _writeFileStub = sinon.stub(fs, "writeFile").resolves();
+
+            const result = await MemoryManager.exportToMarkdown(mockProjectPath, "docs/GRAPH.md");
+
+            expect(result).to.contain("docs");
+            expect(result).to.contain("GRAPH.md");
+        });
+
+        it("should handle entities without observations", async () => {
+            const graph = {
+                entities: [{ name: "Test", entityType: "TYPE", observations: [] }],
+                relations: []
+            };
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves(graph);
+            const writeFileStub = sinon.stub(fs, "writeFile").resolves();
+
+            await MemoryManager.exportToMarkdown(mockProjectPath);
+
+            const content = writeFileStub.firstCall.args[1] as string;
+            expect(content).to.contain("### Test");
+            expect(content).to.not.contain("**Observations**");
+        });
+    });
+
+    describe("writeGraph - Edge Cases", () => {
+        it("should handle entities with undefined observations", async () => {
+            const graph: KnowledgeGraph = {
+                entities: [{ name: "Test", entityType: "T", observations: undefined as any }],
+                relations: []
+            };
+            sinon.stub(fs, "ensureDir").resolves();
+            const writeJsonStub = sinon.stub(fs, "writeJson").resolves();
+            sinon.stub(fs, "move").resolves();
+
+            await MemoryManager.writeGraph(mockProjectPath, graph);
+
+            const savedGraph = writeJsonStub.firstCall.args[1] as KnowledgeGraph;
+            expect(savedGraph.entities[0]!.observations).to.deep.equal([]);
+        });
+
+        it("should cleanup temp file on failure", async () => {
+            const graph: KnowledgeGraph = { entities: [], relations: [] };
+            sinon.stub(fs, "ensureDir").resolves();
+            sinon.stub(fs, "writeJson").resolves();
+            sinon.stub(fs, "move").rejects(new Error("Move failed"));
+            const _pathExistsStub = sinon.stub(fs, "pathExists").resolves(true);
+            const removeStub = sinon.stub(fs, "remove").resolves();
+
+            try {
+                await MemoryManager.writeGraph(mockProjectPath, graph);
+                expect.fail("Should have thrown");
+            } catch {
+                expect(removeStub.calledOnce).to.be.true;
+            }
+        });
     });
 });
+

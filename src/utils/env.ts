@@ -1,8 +1,8 @@
 import { execSync } from "child_process";
 
 export function checkEnvironment() {
-    const minNodeMajor = 24;
-    const minNpmVersion = "11.5.1";
+    const minNodeMajor = 20;
+    const minNpmVersion = "10.0.0";
 
     // 1. Check Node.js Version
     const nodeVersion = process.version;
@@ -24,7 +24,7 @@ export function checkEnvironment() {
         if (isLower) {
             console.error(`[Warning] npm version ${npmVersion} detected. npm >= ${minNpmVersion} is required for Trusted Publishing (OIDC).`);
         }
-    } catch (e) {
+    } catch {
         // Silently ignore if npm is not in PATH at runtime
     }
 }
