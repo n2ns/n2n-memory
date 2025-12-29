@@ -5,8 +5,8 @@
 [![license](https://img.shields.io/github/license/n2ns/n2n-memory)](https://github.com/n2ns/n2n-memory/blob/main/LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Protocol-blue)](https://modelcontextprotocol.io)
 [![node version](https://img.shields.io/node/v/@datafrog-io/n2n-memory)](https://nodejs.org)
-[![N2N Synthetics](https://datafrog.io/badges/n2n-synthetics.svg)](https://github.com/n2ns)
-[![DataFrog.io](https://datafrog.io/badges/datafrog.svg)](https://datafrog.io)
+<a href="https://github.com/n2ns"><img src="https://datafrog.io/badges/n2n-synthetics.svg" height="20" alt="N2N Synthetics"></a>
+<a href="https://datafrog.io"><img src="https://datafrog.io/badges/datafrog.svg" height="20" alt="DataFrog.io"></a>
 
 [English](../README.md)
 
