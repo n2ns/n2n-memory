@@ -35,7 +35,7 @@ export const TOOL_DEFINITIONS = [
     },
     {
         name: "n2n_search",
-        description: "Search project memory by keyword. Helpful for locating specific context in large graphs.",
+        description: "Search project memory with fuzzy matching support. Handles typos, partial matches, and semantic similarity. Results are ranked by relevance score.",
         inputSchema: { type: "object" }
     },
     {
