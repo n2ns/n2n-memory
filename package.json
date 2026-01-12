@@ -1,6 +1,6 @@
 {
   "name": "@datafrog-io/n2n-memory",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Project-local knowledge-graph memory MCP server for AI context isolation.",
   "main": "build/index.js",
   "bin": {

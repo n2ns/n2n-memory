@@ -204,6 +204,32 @@ export class MemoryService {
 
     // --- Combined Operations ---
 
+    /**
+     * Protocol reminder prefix for nextSteps.
+     * Used to inject and identify protocol reminders in context.
+     */
+    private static readonly PROTOCOL_PREFIX = "[N2N-SYNC]";
+    private static readonly PROTOCOL_REMINDER = `${MemoryService.PROTOCOL_PREFIX} Before 'git commit': call n2n_update_context to sync your progress.`;
+
+    /**
+     * Injects protocol reminder into nextSteps if not already present.
+     * Preserves user-defined nextSteps while ensuring protocol visibility.
+     */
+    private injectProtocolReminder(context: ProjectContext): ProjectContext {
+        const hasProtocolReminder = context.nextSteps.some(
+            step => step.startsWith(MemoryService.PROTOCOL_PREFIX)
+        );
+
+        if (!hasProtocolReminder) {
+            return {
+                ...context,
+                nextSteps: [MemoryService.PROTOCOL_REMINDER, ...context.nextSteps]
+            };
+        }
+
+        return context;
+    }
+
     public async getCompleteState(
         projectPath: string,
         options: { summaryMode?: boolean; limit?: number; offset?: number } = {}
@@ -213,10 +239,13 @@ export class MemoryService {
         totalEntityCount: number;
         isTruncated: boolean;
     }> {
-        const [graph, context] = await Promise.all([
+        const [graph, rawContext] = await Promise.all([
             this.getGraph(projectPath),
             this.getContext(projectPath)
         ]);
+
+        // Inject protocol reminder into context.nextSteps
+        const context = this.injectProtocolReminder(rawContext);
 
         const totalEntityCount = graph.entities.length;
         const offset = options.offset || 0;

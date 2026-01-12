@@ -6,22 +6,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.2.0] - 2025-01-12
+## [1.2.1] - 2026-01-12
 
 ### Added
+- **Structured JSON Tool Responses**:
+  - Upgraded all tool responses from plain text to structured JSON.
+  - Added `status`, `message`, and `_protocol` metadata fields for better machine readability.
+- **Dynamic N2N-SYNC Protocol Reminders**:
+  - Implemented automatic injection of `[N2N-SYNC]` protocol reminders into `nextSteps`.
+  - Embedded protocol hints in tool metadata to guide AI assistants toward better synchronization habits.
 - **Similarity-Based Observation Deduplication**:
   - New `similarity.ts` utility module with Jaccard similarity, Levenshtein distance, and containment detection algorithms.
   - `addEntities()` and `addObservations()` now use intelligent deduplication instead of exact-match `Set` deduplication.
   - Automatically keeps the longer (more detailed) observation when duplicates are detected.
   - Prevents redundant entries like "version 2.4.1" and "version 2.4.1 is the current release" from coexisting.
-
 - **Fuzzy Search with Relevance Ranking**:
   - `n2n_search` tool now supports fuzzy matching by default.
   - New optional parameters: `fuzzy` (boolean) and `minScore` (0-1 threshold).
   - Search results are ranked by relevance score (highest first).
   - Handles typos via Levenshtein similarity.
   - Supports word-level partial matching and semantic similarity via Jaccard index.
-
 - **New Unit Tests**:
   - Comprehensive test suite for all similarity functions (`similarity.test.ts`).
   - 99 tests passing.
