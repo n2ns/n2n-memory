@@ -53,6 +53,8 @@ export const SearchSchema = z.object({
     query: z.string().describe("Search keywords for entities, types, or observations"),
     limit: z.number().int().positive().optional().describe("Maximum number of entities to return."),
     offset: z.number().int().nonnegative().optional().describe("Number of entities to skip."),
+    fuzzy: z.boolean().optional().describe("Enable fuzzy matching for typo tolerance and semantic similarity (default: true)."),
+    minScore: z.number().min(0).max(1).optional().describe("Minimum relevance score threshold 0-1 (default: 0.3). Higher values return fewer but more relevant results."),
 });
 
 export const DeleteEntitiesSchema = z.object({

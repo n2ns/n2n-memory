@@ -9,6 +9,10 @@ import {
     ProjectContext
 } from "../types.js";
 import {
+    deduplicateObservations,
+    fuzzyMatchScore
+} from "../utils/similarity.js";
+import {
     MemoryManager,
     MEMORY_FILE_PATH,
     CONTEXT_FILE_PATH
@@ -307,8 +311,14 @@ export class MemoryService {
             entities.forEach(newEntity => {
                 const existing = graph.entities.find(e => e.name === newEntity.name);
                 if (existing) {
-                    existing.observations = Array.from(new Set([...existing.observations, ...newEntity.observations]));
+                    // Use similarity-based deduplication instead of exact match
+                    existing.observations = deduplicateObservations([
+                        ...existing.observations,
+                        ...newEntity.observations
+                    ]);
                 } else {
+                    // Deduplicate observations within the new entity as well
+                    newEntity.observations = deduplicateObservations(newEntity.observations);
                     graph.entities.push(newEntity);
                 }
             });
@@ -322,7 +332,11 @@ export class MemoryService {
                 const entity = graph.entities.find(e => e.name === obs.entityName);
                 if (entity) {
                     const originalLen = entity.observations.length;
-                    entity.observations = Array.from(new Set([...entity.observations, ...obs.contents]));
+                    // Use similarity-based deduplication instead of exact match
+                    entity.observations = deduplicateObservations([
+                        ...entity.observations,
+                        ...obs.contents
+                    ]);
                     count += entity.observations.length - originalLen;
                 }
             });
@@ -388,7 +402,7 @@ export class MemoryService {
     public async search(
         projectPath: string,
         query: string,
-        options: { limit?: number; offset?: number } = {}
+        options: { limit?: number; offset?: number; fuzzy?: boolean; minScore?: number } = {}
     ): Promise<{
         graph: KnowledgeGraph;
         totalResults: number;
@@ -396,26 +410,73 @@ export class MemoryService {
     }> {
         const graph = await this.getGraph(projectPath);
         const lowerQuery = query.toLowerCase();
+        const fuzzy = options.fuzzy ?? true; // Enable fuzzy search by default
+        const minScore = options.minScore ?? 0.3; // Minimum score threshold
 
-        const filteredEntities = graph.entities.filter(e =>
-            e.name.toLowerCase().includes(lowerQuery) ||
-            e.entityType.toLowerCase().includes(lowerQuery) ||
-            e.observations.some(o => o.toLowerCase().includes(lowerQuery))
-        );
+        // Score each entity based on search relevance
+        const scoredEntities: { entity: Entity; score: number }[] = [];
 
-        const totalResults = filteredEntities.length;
+        for (const entity of graph.entities) {
+            let maxScore = 0;
+
+            // Check entity name
+            if (fuzzy) {
+                maxScore = Math.max(maxScore, fuzzyMatchScore(query, entity.name));
+            } else if (entity.name.toLowerCase().includes(lowerQuery)) {
+                maxScore = 1;
+            }
+
+            // Check entity type
+            if (fuzzy) {
+                maxScore = Math.max(maxScore, fuzzyMatchScore(query, entity.entityType) * 0.8);
+            } else if (entity.entityType.toLowerCase().includes(lowerQuery)) {
+                maxScore = Math.max(maxScore, 0.8);
+            }
+
+            // Check observations
+            for (const obs of entity.observations) {
+                if (fuzzy) {
+                    maxScore = Math.max(maxScore, fuzzyMatchScore(query, obs) * 0.9);
+                } else if (obs.toLowerCase().includes(lowerQuery)) {
+                    maxScore = Math.max(maxScore, 0.9);
+                }
+                if (maxScore >= 1) break; // Early exit if perfect match found
+            }
+
+            if (maxScore >= minScore) {
+                scoredEntities.push({ entity, score: maxScore });
+            }
+        }
+
+        // Sort by score descending
+        scoredEntities.sort((a, b) => b.score - a.score);
+
+        const totalResults = scoredEntities.length;
         const offset = options.offset || 0;
         const limit = options.limit || totalResults;
-        const paginatedEntities = filteredEntities.slice(offset, offset + limit);
+        const paginatedEntities = scoredEntities
+            .slice(offset, offset + limit)
+            .map(se => se.entity);
         const isTruncated = (offset + limit) < totalResults;
 
         const entityNames = new Set(paginatedEntities.map(e => e.name));
-        const filteredRelations = graph.relations.filter(r =>
-            r.from.toLowerCase().includes(lowerQuery) ||
-            r.to.toLowerCase().includes(lowerQuery) ||
-            r.relationType.toLowerCase().includes(lowerQuery) ||
-            (entityNames.has(r.from) || entityNames.has(r.to))
-        );
+
+        // Filter relations with fuzzy matching support
+        const filteredRelations = graph.relations.filter(r => {
+            // Include if connected to a matched entity
+            if (entityNames.has(r.from) || entityNames.has(r.to)) {
+                return true;
+            }
+            // Include if relation itself matches the query
+            if (fuzzy) {
+                return fuzzyMatchScore(query, r.from) >= minScore ||
+                    fuzzyMatchScore(query, r.to) >= minScore ||
+                    fuzzyMatchScore(query, r.relationType) >= minScore;
+            }
+            return r.from.toLowerCase().includes(lowerQuery) ||
+                r.to.toLowerCase().includes(lowerQuery) ||
+                r.relationType.toLowerCase().includes(lowerQuery);
+        });
 
         return {
             graph: { entities: paginatedEntities, relations: filteredRelations },

@@ -130,7 +130,9 @@ export const Handlers = {
 
         const result = await MemoryService.getInstance().search(root, parsed.query, {
             limit: parsed.limit,
-            offset: parsed.offset
+            offset: parsed.offset,
+            fuzzy: parsed.fuzzy,
+            minScore: parsed.minScore
         });
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     },
