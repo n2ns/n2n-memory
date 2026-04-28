@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/n2ns-n2n-memory-badge.png)](https://mseep.ai/app/n2ns-n2n-memory)
+
 # n2n-memory
 
 [![npm version](https://img.shields.io/npm/v/@datafrog-io/n2n-memory)](https://www.npmjs.com/package/@datafrog-io/n2n-memory)
