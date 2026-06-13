@@ -6,9 +6,40 @@
 
 本项目的所有重大变更都将记录在此文件中。
 
-## [1.2.0] - 2025-01-12
+## [未发布]
+
+### 修复 (Fixed)
+- 普通读取现在会在底层 `.mcp` 文件变化时刷新已缓存的图谱/上下文 snapshot。
+- 已存在但无法读取的 `memory.json` 或 `context.json` 现在会抛出数据完整性错误，不再被当成空状态。
+- `n2n_create_relations` 现在会拒绝指向不存在实体的关系。
+- `n2n_export_markdown` 现在会拒绝绝对输出路径，以及试图逃逸项目根目录的相对路径。
+- `projectPath` 校验现在会在路径解析前拒绝相对路径。
+- 生产依赖与开发依赖审计现在均可达到 0 漏洞。
+
+### 变更 (Changed)
+- 明确 `projectPath` 必须指向项目根目录或工作区顶级目录。
+- 将 JSON 存储写入收敛到共享的原子写入路径，并在持久化前规范化图谱副本。
+- 测试框架从 Mocha 切换到 Vitest，以保持开发依赖树干净。
+- 工具发现现在会暴露由 Zod Schema 生成的具体 JSON 输入 Schema。
+- 只有 README 的目录会被视为弱根目录，并在项目识别时被拒绝。
+- 服务日志默认隐藏完整本地路径，除非设置 `N2N_LOG_LEVEL=debug`。
+- 更新英文与中文文档，反映当前工具集、存储契约、路径边界和图谱完整性行为。
 
 ### 新增 (Added)
+- 新增用于 PR 和 `main` 分支推送的 GitHub CI workflow。
+- 发布 workflow 现在会在 `npm publish` 前运行完整检查。
+- 新增 npm 包 `files` 白名单和更完整的 package metadata。
+- 新增开源治理文件：贡献指南、安全策略、行为准则、issue 模板和 PR 模板。
+
+## [1.2.1] - 2026-01-12
+
+### 新增 (Added)
+- **结构化 JSON 工具响应**：
+  - 将工具响应从纯文本升级为结构化 JSON。
+  - 新增 `status`、`message` 和 `_protocol` 元数据字段，提高机器可读性。
+- **动态 N2N-SYNC 协议提醒**：
+  - 自动向 `nextSteps` 注入 `[N2N-SYNC]` 协议提醒。
+  - 在工具元数据中嵌入协议提示，引导 AI 助手形成更好的同步习惯。
 - **基于相似度的观察去重**：
   - 新增 `similarity.ts` 工具模块，包含 Jaccard 相似度、Levenshtein 编辑距离和包含检测算法。
   - `addEntities()` 和 `addObservations()` 现在使用智能去重替代精确匹配的 `Set` 去重。

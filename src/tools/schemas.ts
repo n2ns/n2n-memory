@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const BaseSchema = {
-    projectPath: z.string().describe("The absolute path to the project or any subdirectory within the project."),
+    projectPath: z.string().describe("The absolute path to the project root or workspace top-level directory."),
     confirmNewProjectRoot: z.string().optional().describe("MUST be provided ONLY when initializing a new project. Set this to the 'detectedRoot' path returned by the server's confirmation request."),
 };
 

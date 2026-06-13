@@ -17,6 +17,7 @@ import {
     MEMORY_FILE_PATH,
     CONTEXT_FILE_PATH
 } from "./memory-manager.js";
+import { formatProjectPath, logError, logInfo } from "../utils/logging.js";
 
 /**
  * MemoryService - High reliability dual-buffer memory manager.
@@ -59,7 +60,7 @@ export class MemoryService {
      * Gracefully shuts down the service, releasing all active file locks.
      */
     public async shutdown(): Promise<void> {
-        console.error(`[MemoryService] Shutting down, releasing ${this.activeLocks.size} locks...`);
+        logInfo(`[MemoryService] Shutting down, releasing ${this.activeLocks.size} locks...`);
         const lockReleases = Array.from(this.activeLocks.values());
         await Promise.all(lockReleases.map(release => release().catch(() => { })));
         this.activeLocks.clear();
@@ -104,31 +105,25 @@ export class MemoryService {
     public async loadSnapshot(projectPath: string): Promise<KnowledgeGraph> {
         this.touchProject(projectPath);
         const filePath = path.resolve(projectPath, MEMORY_FILE_PATH);
-        try {
-            if (await fs.pathExists(filePath)) {
-                const stats = await fs.stat(filePath);
-                const currentMtime = stats.mtimeMs;
-                if (this.snapshots.has(projectPath) && this.lastMtimes.get(projectPath) === currentMtime) {
-                    return this.snapshots.get(projectPath)!;
-                }
-                const graph = await MemoryManager.readGraph(projectPath);
-                this.snapshots.set(projectPath, graph);
-                this.lastMtimes.set(projectPath, currentMtime);
-                return graph;
+        if (await fs.pathExists(filePath)) {
+            const stats = await fs.stat(filePath);
+            const currentMtime = stats.mtimeMs;
+            if (this.snapshots.has(projectPath) && this.lastMtimes.get(projectPath) === currentMtime) {
+                return this.snapshots.get(projectPath)!;
             }
-        } catch (error) {
-            console.error(`[MemoryService] Failed to load graph snapshot: ${error}`);
+            const graph = await MemoryManager.readGraph(projectPath);
+            this.snapshots.set(projectPath, graph);
+            this.lastMtimes.set(projectPath, currentMtime);
+            return graph;
         }
         const emptyGraph = { entities: [], relations: [] };
         this.snapshots.set(projectPath, emptyGraph);
+        this.lastMtimes.delete(projectPath);
         return emptyGraph;
     }
 
     public async getGraph(projectPath: string): Promise<KnowledgeGraph> {
-        if (!this.snapshots.has(projectPath)) {
-            return await this.loadSnapshot(projectPath);
-        }
-        return this.snapshots.get(projectPath)!;
+        return await this.loadSnapshot(projectPath);
     }
 
     // --- Context Operations ---
@@ -136,31 +131,25 @@ export class MemoryService {
     public async loadContextSnapshot(projectPath: string): Promise<ProjectContext> {
         this.touchProject(projectPath);
         const filePath = path.resolve(projectPath, CONTEXT_FILE_PATH);
-        try {
-            if (await fs.pathExists(filePath)) {
-                const stats = await fs.stat(filePath);
-                const currentMtime = stats.mtimeMs;
-                if (this.contextSnapshots.has(projectPath) && this.contextMtimes.get(projectPath) === currentMtime) {
-                    return this.contextSnapshots.get(projectPath)!;
-                }
-                const context = await MemoryManager.readContext(projectPath);
-                this.contextSnapshots.set(projectPath, context);
-                this.contextMtimes.set(projectPath, currentMtime);
-                return context;
+        if (await fs.pathExists(filePath)) {
+            const stats = await fs.stat(filePath);
+            const currentMtime = stats.mtimeMs;
+            if (this.contextSnapshots.has(projectPath) && this.contextMtimes.get(projectPath) === currentMtime) {
+                return this.contextSnapshots.get(projectPath)!;
             }
-        } catch (error) {
-            console.error(`[MemoryService] Failed to load context snapshot: ${error}`);
+            const context = await MemoryManager.readContext(projectPath);
+            this.contextSnapshots.set(projectPath, context);
+            this.contextMtimes.set(projectPath, currentMtime);
+            return context;
         }
         const defaultContext: ProjectContext = { status: "PLANNING", nextSteps: [] };
         this.contextSnapshots.set(projectPath, defaultContext);
+        this.contextMtimes.delete(projectPath);
         return defaultContext;
     }
 
     public async getContext(projectPath: string): Promise<ProjectContext> {
-        if (!this.contextSnapshots.has(projectPath)) {
-            return await this.loadContextSnapshot(projectPath);
-        }
-        return this.contextSnapshots.get(projectPath)!;
+        return await this.loadContextSnapshot(projectPath);
     }
 
     /**
@@ -324,7 +313,7 @@ export class MemoryService {
                 this.snapshots.set(projectPath, currentGraph);
 
             } catch (error) {
-                console.error(`[MemoryService] Write operation failed for ${projectPath}:`, error);
+                logError(`[MemoryService] Write operation failed for ${formatProjectPath(projectPath)}.`, error);
                 throw error;
             } finally {
                 if (release) {
@@ -375,6 +364,18 @@ export class MemoryService {
 
     public async createRelations(projectPath: string, relations: Relation[]): Promise<void> {
         await this.executeWrite(projectPath, (graph) => {
+            const entityNames = new Set(graph.entities.map(entity => entity.name));
+            const missingNames = new Set<string>();
+
+            for (const relation of relations) {
+                if (!entityNames.has(relation.from)) missingNames.add(relation.from);
+                if (!entityNames.has(relation.to)) missingNames.add(relation.to);
+            }
+
+            if (missingNames.size > 0) {
+                throw new Error(`Cannot create relations with missing entities: ${Array.from(missingNames).sort().join(", ")}`);
+            }
+
             relations.forEach(newRel => {
                 const exists = graph.relations.some(r =>
                     r.from === newRel.from && r.to === newRel.to && r.relationType === newRel.relationType

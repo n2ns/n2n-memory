@@ -6,24 +6,59 @@
   "bin": {
     "n2n-memory": "build/index.js"
   },
-  "repository": "n2ns/n2n-memory",
+  "files": [
+    "build",
+    "docs",
+    "README.md",
+    "llms.txt",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n2ns/n2n-memory.git"
+  },
+  "homepage": "https://github.com/n2ns/n2n-memory#readme",
+  "bugs": {
+    "url": "https://github.com/n2ns/n2n-memory/issues"
+  },
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "clean": "node -e \"require('node:fs').rmSync('build', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
     "start": "node build/index.js",
     "dev": "tsx src/index.ts",
-    "test": "mocha --node-option import=tsx src/test/**/*.test.ts",
-    "lint": "eslint src/**/*.ts"
+    "test": "vitest run",
+    "lint": "eslint src/**/*.ts",
+    "audit": "npm audit",
+    "audit:prod": "npm audit --omit=dev",
+    "pack:dry-run": "npm pack --dry-run",
+    "check": "npm run lint && npm test && npm run build && npm run audit && npm run pack:dry-run",
+    "prepublishOnly": "npm run check"
   },
   "keywords": [
     "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "modelcontextprotocol",
     "memory",
+    "agent-memory",
+    "ai-memory",
+    "project-memory",
+    "project-local-memory",
     "context",
     "ai",
+    "ai-developer-tools",
+    "coding-agent",
+    "local-first",
+    "claude",
+    "claude-desktop",
+    "cursor",
+    "vscode",
     "knowledge-graph"
   ],
   "author": "DataFrog IO",
@@ -33,28 +68,26 @@
     "npm": ">=10.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/proper-lockfile": "^4.1.4",
     "async-mutex": "^0.5.0",
-    "fs-extra": "^11.3.3",
+    "fs-extra": "^11.3.5",
     "proper-lockfile": "^4.1.2",
-    "zod": "^4.2.1"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/chai": "^5.2.3",
     "@types/fs-extra": "^11.0.4",
-    "@types/mocha": "^10.0.10",
     "@types/node": "^25.0.3",
     "@types/sinon": "^21.0.0",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "chai": "^6.2.1",
     "eslint": "^9.39.2",
-    "mocha": "^11.7.5",
     "sinon": "^21.0.1",
-    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.0"
+    "typescript-eslint": "^8.50.0",
+    "vitest": "^4.1.8"
   }
 }

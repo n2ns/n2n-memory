@@ -6,6 +6,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- Normal reads now refresh cached graph/context snapshots when the underlying `.mcp` files change.
+- Existing but unreadable `memory.json` or `context.json` files now raise data integrity errors instead of being treated as empty state.
+- `n2n_create_relations` now rejects relations that reference missing entities.
+- `n2n_export_markdown` now rejects absolute output paths and relative paths that escape the project root.
+- `projectPath` validation now rejects relative paths before resolving them.
+- Production and development dependency audits now pass with zero vulnerabilities.
+
+### Changed
+- Clarified that `projectPath` must point to the project root or workspace top-level directory.
+- Refactored JSON storage writes through a shared atomic-write path and normalized graph copies before persisting.
+- Switched the test runner from Mocha to Vitest to keep the development dependency tree clean.
+- Tool discovery now exposes concrete JSON input schemas generated from the Zod schemas.
+- README-only directories are treated as weak roots and are rejected during project recognition.
+- Server logs hide full local paths by default unless `N2N_LOG_LEVEL=debug` is set.
+- Updated English and Chinese documentation to reflect the current tool set, storage contract, path containment rules, and graph integrity behavior.
+
+### Added
+- GitHub CI workflow for pull requests and pushes to `main`.
+- Hardened publish workflow that runs the full check suite before `npm publish`.
+- npm package `files` whitelist and richer package metadata.
+- Open-source governance files: contributing guide, security policy, code of conduct, issue templates, and PR template.
+
 ## [1.2.1] - 2026-01-12
 
 ### Added
@@ -28,7 +53,7 @@ All notable changes to this project will be documented in this file.
   - Supports word-level partial matching and semantic similarity via Jaccard index.
 - **New Unit Tests**:
   - Comprehensive test suite for all similarity functions (`similarity.test.ts`).
-  - 99 tests passing.
+  - Expanded regression coverage for memory and search behavior.
 
 ## [1.1.0] - 2024-12-19
 

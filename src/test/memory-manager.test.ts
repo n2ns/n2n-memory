@@ -29,14 +29,29 @@ describe("MemoryManager", () => {
             expect(graph).to.deep.equal(mockData);
         });
 
-        it("should log error if reading fails but return empty", async () => {
+        it("should throw if existing memory file cannot be read", async () => {
             sinon.stub(fs, "pathExists").resolves(true);
             sinon.stub(fs, "readJson").rejects(new Error("Parse error"));
-            const consoleStub = sinon.stub(console, "error");
 
-            const graph = await MemoryManager.readGraph(mockProjectPath);
-            expect(graph).to.deep.equal({ entities: [], relations: [] });
-            expect(consoleStub.called).to.be.true;
+            try {
+                await MemoryManager.readGraph(mockProjectPath);
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("Failed to read memory file");
+                expect((error as Error).message).to.contain("Parse error");
+            }
+        });
+
+        it("should throw if existing memory file does not match schema", async () => {
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves({ entities: [{ name: "Missing fields" }] });
+
+            try {
+                await MemoryManager.readGraph(mockProjectPath);
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("Failed to read memory file");
+            }
         });
     });
 
@@ -150,6 +165,30 @@ describe("MemoryManager", () => {
             expect(content).to.contain("obs1");
             expect(content).to.contain("| Test | USES | Other |");
         });
+
+        it("should reject absolute export paths", async () => {
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves({ entities: [], relations: [] });
+
+            try {
+                await MemoryManager.exportToMarkdown(mockProjectPath, "/tmp/out.md");
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("relative");
+            }
+        });
+
+        it("should reject export paths outside the project root", async () => {
+            sinon.stub(fs, "pathExists").resolves(true);
+            sinon.stub(fs, "readJson").resolves({ entities: [], relations: [] });
+
+            try {
+                await MemoryManager.exportToMarkdown(mockProjectPath, "../out.md");
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("inside the project root");
+            }
+        });
     });
 
     describe("Context Operations", () => {
@@ -188,14 +227,17 @@ describe("MemoryManager", () => {
             }
         });
 
-        it("should log error if context read fails but return default", async () => {
+        it("should throw if existing context file cannot be read", async () => {
             sinon.stub(fs, "pathExists").resolves(true);
             sinon.stub(fs, "readJson").rejects(new Error("Corrupted file"));
-            const consoleStub = sinon.stub(console, "error");
 
-            const context = await MemoryManager.readContext(mockProjectPath);
-            expect(context.status).to.equal("PLANNING");
-            expect(consoleStub.called).to.be.true;
+            try {
+                await MemoryManager.readContext(mockProjectPath);
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("Failed to read context file");
+                expect((error as Error).message).to.contain("Corrupted file");
+            }
         });
     });
 
@@ -325,4 +367,3 @@ describe("MemoryManager", () => {
         });
     });
 });
-

@@ -10,6 +10,7 @@ import * as Schemas from "../tools/schemas.js";
 import { MemoryService } from "../core/memory-service.js";
 import { MemoryManager } from "../core/memory-manager.js";
 import { findProjectRoot } from "../utils/path-utils.js";
+import { formatProjectPath } from "../utils/logging.js";
 import { z } from "zod";
 
 /**
@@ -368,7 +369,7 @@ export function registerAll(server: McpServer) {
         async (args) => {
             await server.server.sendLoggingMessage({
                 level: "info",
-                data: `Processing n2n_add_entities for path: ${args.projectPath}`,
+                data: `Processing n2n_add_entities for project: ${formatProjectPath(args.projectPath)}`,
             });
             return await Handlers.addEntities(args);
         }
@@ -380,7 +381,7 @@ export function registerAll(server: McpServer) {
         async (args) => {
             await server.server.sendLoggingMessage({
                 level: "info",
-                data: `Processing n2n_add_observations for path: ${args.projectPath}`,
+                data: `Processing n2n_add_observations for project: ${formatProjectPath(args.projectPath)}`,
             });
             return await Handlers.addObservations(args);
         }
@@ -392,7 +393,7 @@ export function registerAll(server: McpServer) {
         async (args) => {
             await server.server.sendLoggingMessage({
                 level: "info",
-                data: `Processing n2n_create_relations for path: ${args.projectPath}`,
+                data: `Processing n2n_create_relations for project: ${formatProjectPath(args.projectPath)}`,
             });
             return await Handlers.createRelations(args);
         }
@@ -404,7 +405,7 @@ export function registerAll(server: McpServer) {
         async (args) => {
             await server.server.sendLoggingMessage({
                 level: "info",
-                data: `Reading graph for path: ${args.projectPath}`,
+                data: `Reading graph for project: ${formatProjectPath(args.projectPath)}`,
             });
             return await Handlers.readGraph(args);
         }
@@ -422,7 +423,7 @@ export function registerAll(server: McpServer) {
         async (args) => {
             await server.server.sendLoggingMessage({
                 level: "info",
-                data: `Updating context for path: ${args.projectPath}`,
+                data: `Updating context for project: ${formatProjectPath(args.projectPath)}`,
             });
             return await Handlers.updateContext(args);
         }

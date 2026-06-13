@@ -12,13 +12,17 @@ This project aims to develop a minimalist, tool-agnostic, and version-control-fr
 ## 2. Core Architecture
 
 ### 2.1 Storage Logic
-- **Location**: `[Project Root]/.mcp/memory.json`
+- **Cold Memory Location**: `[Project Root]/.mcp/memory.json`
+- **Hot Context Location**: `[Project Root]/.mcp/context.json`
 - **Agnosticism**: Uses the `.mcp` naming convention to avoid branding ties to specific AI assistants or IDE plugins.
-- **Physical Isolation**: One file per project, synchronized with project code.
+- **Physical Isolation**: One `.mcp` workspace per project, synchronized with project code.
 
 ### 2.2 Interaction & Security
 - **Strict Root Enforcement**: Cancels recursive parent searches. AI must operate from the recognized project root or workspace top-level.
+- **Strong Root Markers**: Initialization requires strong markers such as `.git`, `package.json`, `tsconfig.json`, or language-specific build files. README-only directories are rejected as weak roots.
 - **Handshake Protocol**: Requires explicit confirmation (`confirmNewProjectRoot`) for new project initialization to prevent directory pollution.
+- **Path Containment**: Export and generated files must stay inside the project root.
+- **Private Logs by Default**: Full local paths are hidden from server logs unless `N2N_LOG_LEVEL=debug` is set.
 - **Dual-Buffer Architecture**:
     - **Hot State (`context.json`)**: Volatile, high-frequency updates (tasks, status).
     - **Cold State (`memory.json`)**: Durable, structured knowledge graph (entities, relations).
@@ -26,14 +30,23 @@ This project aims to develop a minimalist, tool-agnostic, and version-control-fr
 ## 3. Data Structure & Retrieval
 
 ### 3.1 Minimalist Data Format
-The JSON does **not** include version numbers, metadata, author info, or timestamps. Only core knowledge graph data (Entities & Relations) is kept, with auditing achieved via Git history.
+`memory.json` does **not** include version numbers, metadata, author info, or timestamps. Only core knowledge graph data (Entities & Relations) is kept, with auditing achieved via Git history.
+
+`context.json` is a separate hot-state buffer. It may include operational fields such as `activeTask`, `status`, `nextSteps`, and `updatedAt` because this state changes frequently and is not part of the durable knowledge graph contract.
 
 ### 3.2 Git-Friendly Saving Strategy
 To ensure readable `git diff`:
 1. **Mandatory Sorting**: Lexicographical sorting for `entities` and `relations`.
 2. **Standard Indentation**: Uniform use of 2-space indentation.
+3. **Safe Writes**: JSON writes use a temporary file followed by an atomic move.
 
-### 3.3 Scalable Retrieval Mechanism
+Existing but unreadable JSON files are treated as data integrity errors, not as empty memory. This prevents a corrupted file from being accidentally overwritten by a new empty graph.
+
+### 3.3 Graph Integrity
+- **Entity Uniqueness**: Entity names are the stable identifiers within a project graph.
+- **Relation Integrity**: Relations must point to existing entities. Orphan edges are rejected by default.
+
+### 3.4 Scalable Retrieval Mechanism
 - **Pagination (Limit/Offset)**: Supports chunked reading for massive graphs to stay within token limits.
 - **Summary Mode**: Optional retrieval of entity indexes without detailed observations.
 - **Precise Open**: `open_nodes` for fetching specific high-detail context.

@@ -2,9 +2,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createRequire } from "module";
+import { fileURLToPath } from "url";
+import path from "path";
+import fs from "fs";
 import { registerAll } from "./handlers/mcp-handlers.js";
 import { checkEnvironment } from "./utils/env.js";
 import { MemoryService } from "./core/memory-service.js";
+import { logError, logInfo } from "./utils/logging.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
@@ -32,7 +36,7 @@ async function main() {
 
     // Graceful shutdown handlers
     const shutdown = async () => {
-        console.error("\n[System] Shutdown signal received...");
+        logInfo("\n[System] Shutdown signal received...");
         await MemoryService.getInstance().shutdown();
         process.exit(0);
     };
@@ -42,11 +46,23 @@ async function main() {
 
     // Use the internal server instance for connection
     await server.connect(transport);
-    console.error(`N2N Memory MCP server v${pkg.version} running on stdio`);
+    logInfo(`N2N Memory MCP server v${pkg.version} running on stdio`);
 }
 
-main().catch(async (error) => {
-    console.error("Fatal Server Error:", error);
-    await MemoryService.getInstance().shutdown();
-    process.exit(1);
-});
+function isCliEntrypoint(): boolean {
+    if (!process.argv[1]) return false;
+
+    try {
+        return fs.realpathSync(fileURLToPath(import.meta.url)) === fs.realpathSync(path.resolve(process.argv[1]));
+    } catch {
+        return fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+    }
+}
+
+if (isCliEntrypoint()) {
+    main().catch(async (error) => {
+        logError("Fatal Server Error.", error);
+        await MemoryService.getInstance().shutdown();
+        process.exit(1);
+    });
+}

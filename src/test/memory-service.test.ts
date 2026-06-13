@@ -78,6 +78,31 @@ describe("MemoryService", () => {
             expect(graph).to.deep.equal({ entities: [], relations: [] });
         });
 
+        it("should refresh getGraph when the memory file changes externally", async () => {
+            const service = MemoryService.getInstance();
+            sinon.stub(fs, "pathExists").resolves(true);
+            const statStub = sinon.stub(fs, "stat");
+            const readStub = sinon.stub(MemoryManager, "readGraph");
+
+            statStub.onCall(0).resolves({ mtimeMs: 100 } as any);
+            readStub.onCall(0).resolves({
+                entities: [{ name: "Old", entityType: "T", observations: [] }],
+                relations: []
+            });
+            const firstGraph = await service.getGraph(mockProjectPath);
+
+            statStub.onCall(1).resolves({ mtimeMs: 200 } as any);
+            readStub.onCall(1).resolves({
+                entities: [{ name: "New", entityType: "T", observations: [] }],
+                relations: []
+            });
+            const secondGraph = await service.getGraph(mockProjectPath);
+
+            expect(firstGraph.entities[0].name).to.equal("Old");
+            expect(secondGraph.entities[0].name).to.equal("New");
+            expect(readStub.calledTwice).to.be.true;
+        });
+
         it("should load and cache context snapshots", async () => {
             const mockContext = { status: "IN_PROGRESS" as const, nextSteps: ["Step 1"], activeTask: "Testing" };
             sinon.stub(fs, "pathExists").resolves(true);
@@ -103,6 +128,26 @@ describe("MemoryService", () => {
             const context = await service.loadContextSnapshot(mockProjectPath);
             expect(context.status).to.equal("PLANNING");
             expect(context.nextSteps).to.deep.equal([]);
+        });
+
+        it("should refresh getContext when the context file changes externally", async () => {
+            const service = MemoryService.getInstance();
+            sinon.stub(fs, "pathExists").resolves(true);
+            const statStub = sinon.stub(fs, "stat");
+            const readStub = sinon.stub(MemoryManager, "readContext");
+
+            statStub.onCall(0).resolves({ mtimeMs: 100 } as any);
+            readStub.onCall(0).resolves({ status: "PLANNING", nextSteps: [] });
+            const firstContext = await service.getContext(mockProjectPath);
+
+            statStub.onCall(1).resolves({ mtimeMs: 200 } as any);
+            readStub.onCall(1).resolves({ status: "IN_PROGRESS", nextSteps: [], activeTask: "External" });
+            const secondContext = await service.getContext(mockProjectPath);
+
+            expect(firstContext.status).to.equal("PLANNING");
+            expect(secondContext.status).to.equal("IN_PROGRESS");
+            expect(secondContext.activeTask).to.equal("External");
+            expect(readStub.calledTwice).to.be.true;
         });
     });
 
@@ -291,7 +336,14 @@ describe("MemoryService", () => {
         });
 
         it("should create new relations", async () => {
-            sinon.stub(MemoryManager, "readGraph").resolves({ entities: [], relations: [] });
+            sinon.stub(MemoryManager, "readGraph").resolves({
+                entities: [
+                    { name: "A", entityType: "T", observations: [] },
+                    { name: "B", entityType: "T", observations: [] },
+                    { name: "C", entityType: "T", observations: [] }
+                ],
+                relations: []
+            });
             const writeStub = sinon.stub(MemoryManager, "writeGraph").resolves();
 
             await service.createRelations(mockProjectPath, [
@@ -305,7 +357,10 @@ describe("MemoryService", () => {
 
         it("should not create duplicate relations", async () => {
             sinon.stub(MemoryManager, "readGraph").resolves({
-                entities: [],
+                entities: [
+                    { name: "A", entityType: "T", observations: [] },
+                    { name: "B", entityType: "T", observations: [] }
+                ],
                 relations: [{ from: "A", to: "B", relationType: "USES" }]
             });
             const writeStub = sinon.stub(MemoryManager, "writeGraph").resolves();
@@ -316,6 +371,26 @@ describe("MemoryService", () => {
 
             const savedGraph = writeStub.firstCall.args[1];
             expect(savedGraph.relations).to.have.length(1);
+        });
+
+        it("should reject relations that reference missing entities", async () => {
+            sinon.stub(MemoryManager, "readGraph").resolves({
+                entities: [{ name: "A", entityType: "T", observations: [] }],
+                relations: []
+            });
+            const writeStub = sinon.stub(MemoryManager, "writeGraph").resolves();
+
+            try {
+                await service.createRelations(mockProjectPath, [
+                    { from: "A", to: "Missing", relationType: "USES" }
+                ]);
+                expect.fail("Should have thrown");
+            } catch (error) {
+                expect((error as Error).message).to.contain("missing entities");
+                expect((error as Error).message).to.contain("Missing");
+            }
+
+            expect(writeStub.called).to.be.false;
         });
 
         it("should delete specific relations", async () => {

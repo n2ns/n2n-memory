@@ -2,7 +2,7 @@ import { expect } from "chai";
 import path from "path";
 import fs from "fs-extra";
 import os from "os";
-import { findProjectRoot } from "../utils/path-utils.js";
+import { findProjectRoot, validateAbsolutePath } from "../utils/path-utils.js";
 
 describe("PathUtils - findProjectRoot", () => {
     let tempDir: string;
@@ -30,11 +30,16 @@ describe("PathUtils - findProjectRoot", () => {
         expect(result.markersFound).to.include("package.json");
     });
 
-    it("should find root if README.md exists in current dir", async () => {
+    it("should reject README.md as the only project marker", async () => {
         await fs.writeFile(path.join(tempDir, "README.md"), "# Test");
-        const result = await findProjectRoot(tempDir);
-        expect(result.rootPath).to.equal(path.resolve(tempDir));
-        expect(result.markersFound).to.include("README.md");
+
+        try {
+            await findProjectRoot(tempDir);
+            expect.fail("Should have thrown");
+        } catch (error) {
+            expect((error as Error).message).to.contain("Weak markers found");
+            expect((error as Error).message).to.contain("README.md");
+        }
     });
 
     it("should throw error if no markers found in directory", async () => {
@@ -72,5 +77,15 @@ describe("PathUtils - findProjectRoot", () => {
         expect(result.markersFound).to.include(".git");
         expect(result.markersFound).to.include("package.json");
         expect(result.markersFound).to.include("tsconfig.json");
+    });
+});
+
+describe("PathUtils - validateAbsolutePath", () => {
+    it("should reject relative paths", () => {
+        expect(() => validateAbsolutePath("relative/project")).to.throw("Path must be absolute");
+    });
+
+    it("should reject null bytes", () => {
+        expect(() => validateAbsolutePath("/tmp/project\0bad")).to.throw("Invalid path");
     });
 });

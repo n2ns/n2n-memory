@@ -1,0 +1,71 @@
+# n2n-memory
+
+> Project-local MCP memory server for AI coding agents.
+
+n2n-memory is an open-source Model Context Protocol (MCP) server that stores AI coding memory inside each project repository. It prevents cross-project memory pollution by keeping durable project knowledge in `.mcp/memory.json` and active task context in `.mcp/context.json`.
+
+## What it is
+
+- A local-first MCP memory server for AI coding assistants.
+- A Git-friendly project knowledge graph stored as JSON.
+- A tool-agnostic memory layer for Claude Desktop, Cursor, VS Code MCP clients, and other stdio MCP-compatible tools.
+- A practical AI developer tool built for multi-project software development.
+
+## Use cases
+
+- Restore project context at the start of an AI coding session.
+- Preserve architecture decisions, implementation notes, pitfalls, and active task state.
+- Share durable AI project memory with a team through Git.
+- Avoid memory pollution from global AI assistant memory stores.
+- Query a project-local knowledge graph through MCP tools.
+
+## Not for
+
+- Cloud memory synchronization.
+- Global personal memory across unrelated projects.
+- Replacing source code search, static analysis, or repository maps.
+- Replacing a vector database or semantic retrieval platform.
+
+## Storage model
+
+- `.mcp/memory.json`: durable knowledge graph with entities, observations, and relations.
+- `.mcp/context.json`: hot task context with active task, status, next steps, and update time.
+- Existing unreadable JSON files are treated as data integrity errors.
+- Exported files must stay inside the project root.
+
+## Install
+
+```bash
+npx -y @datafrog-io/n2n-memory
+```
+
+## Primary MCP tools
+
+- `n2n_read_graph`
+- `n2n_get_graph_summary`
+- `n2n_add_entities`
+- `n2n_add_observations`
+- `n2n_create_relations`
+- `n2n_update_context`
+- `n2n_search`
+- `n2n_open_nodes`
+- `n2n_delete_entities`
+- `n2n_delete_observations`
+- `n2n_delete_relations`
+- `n2n_export_markdown`
+
+## Key docs
+
+- `README.md`: overview, setup, workflow, FAQ.
+- `docs/API_REFERENCE.md`: full MCP tool reference.
+- `docs/DESIGN.md`: architecture and storage design.
+- `docs/DEVELOPMENT.md`: development, testing, CI, publishing.
+- `CHANGELOG.md`: release history.
+
+## Package and repository
+
+- npm: `@datafrog-io/n2n-memory`
+- GitHub: `https://github.com/n2ns/n2n-memory`
+- License: MIT
+
+Built by N2NS Lab, the open-source lab from Datafrog, focused on practical AI developer tools.

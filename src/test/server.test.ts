@@ -19,6 +19,16 @@ describe("MCP Server Handlers", () => {
             expect(toolNames).to.include("n2n_update_context");
         });
 
+        it("should expose concrete input schemas for tool discovery", async () => {
+            const result = await Handlers.listTools();
+            const readGraph = result.tools.find((tool: any) => tool.name === "n2n_read_graph") as any;
+
+            expect(readGraph.inputSchema).to.have.property("type", "object");
+            expect(readGraph.inputSchema.properties).to.have.property("projectPath");
+            expect(readGraph.inputSchema.properties).to.have.property("summaryMode");
+            expect(readGraph.inputSchema.required).to.include("projectPath");
+        });
+
         it("should validate tool arguments using Zod", async () => {
             const result = await Handlers.callTool("n2n_read_graph", {});
             expect((result as any).isError).to.be.true;
@@ -30,7 +40,7 @@ describe("MCP Server Handlers", () => {
         it("should return error for unrecognized project path", async () => {
             // Use a path that definitely won't exist
             const result = await Handlers.callTool("n2n_read_graph", {
-                projectPath: "C:\\nonexistent\\path\\to\\project"
+                projectPath: "/definitely/nonexistent/path/to/project"
             });
             expect((result as any).isError).to.be.true;
             expect((result as any).content[0].text).to.contain("Directory Not Recognized");
