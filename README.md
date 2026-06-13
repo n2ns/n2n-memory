@@ -18,6 +18,16 @@ Project-local memory MCP server for AI coding agents.
 
 n2n-memory is an open-source, local-first Model Context Protocol (MCP) memory server for AI coding assistants. It prevents cross-project memory pollution by storing durable project knowledge in `.mcp/memory.json` and active task context in `.mcp/context.json` inside each repository.
 
+### Search-friendly positioning
+
+If you are searching for:
+- AI coding memory
+- project-local MCP memory
+- local-first context memory for coding agents
+- repository-isolated memory graph for Claude/Cursor/VS Code workflows
+
+This server is designed for these goals: deterministic JSON output, project isolation, and Git-friendly reviewability.
+
 ## What Is n2n-memory?
 
 n2n-memory gives AI coding tools a project-local knowledge graph they can read and update through MCP. It is designed for developers and teams who use AI assistants across multiple repositories and want memory that is local, auditable, Git-friendly, and not mixed with unrelated projects.
@@ -82,6 +92,10 @@ Add in the MCP settings panel:
 - **Type**: `command`
 - **Command**: `npx -y @datafrog-io/n2n-memory`
 
+##### Other MCP clients
+- The server uses stdio MCP and can be wired to any MCP client that supports local command execution.
+- If your client supports it, set `N2N_LOG_LEVEL=debug` only when troubleshooting local path resolution.
+
 #### 2. Usage Guide
 
 This service is path-driven. AI assistants should pay attention to:
@@ -127,6 +141,16 @@ If your project memory may contain private implementation details, keep the whol
 - **Ontology Enforcement**: Optional schema for relation type consistency.
 - **Time Travel**: Versioned snapshots for memory rollback.
 
+## Security and governance notes
+
+- `n2n_delete_entities`, `n2n_delete_observations`, and `n2n_delete_relations` are destructive and should be governed by review workflows.
+- Keep `context.json` uncommitted by default, and commit `.mcp/memory.json` only when team sharing is intentional.
+- See [SECURITY.md](./SECURITY.md) for vulnerability reporting.
+
+### Search disambiguation note
+
+`n2n-memory` is not a network VPN or mesh overlay project. It is an MCP memory server for AI coding agents.
+
 ## FAQ
 
 ### Is n2n-memory a vector database?
@@ -148,6 +172,10 @@ Global memory follows the assistant or user across contexts. n2n-memory follows 
 ### Does it work with Claude Desktop, Cursor, and VS Code?
 
 Yes, when the client supports stdio MCP servers. The README includes Claude Desktop and Cursor / VS Code MCP configuration examples.
+
+### Is this the same as a global AI memory store?
+
+No. This is a repository-scoped memory server. Each project gets its own `.mcp` workspace.
 
 ---
 

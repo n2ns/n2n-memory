@@ -8,6 +8,12 @@ N2N-Memory provides project-local knowledge graph tools over MCP. Every tool req
 
 Project recognition requires a strong marker such as `.git`, `.mcp`, `package.json`, `tsconfig.json`, or a language-specific build file. README-only directories are treated as weak roots and rejected.
 
+## SEO and discoverability notes
+
+- Recommended labels: **project-local MCP memory**, **AI coding memory graph**, **local-first AI context storage**.
+- Primary user intent: repository context recovery, deterministic project memory, and safe AI coding assistant handoff.
+- This API is designed for local-first agents and does not depend on cloud infrastructure.
+
 ## Shared Parameters
 
 All tools include:
@@ -94,6 +100,26 @@ The `_protocol` field guides AI assistants during development cycles:
 - `action`: Logical state change, such as `MEMORY_LOADED`, `MEMORY_UPDATED`, or `CONTEXT_SYNCED`.
 - `reminder`: Synchronization hint for AI assistants.
 - `policy` / `tip`: Context-specific behavior guidance when present.
+
+## Common usage patterns
+
+1. Start each session by calling `n2n_read_graph` with `summaryMode: true` to inspect the project index.
+2. Add durable facts with `n2n_add_entities` and `n2n_add_observations`.
+3. Link facts with `n2n_create_relations`.
+4. Track daily work in `n2n_update_context` before major refactors.
+5. Before commit, call `n2n_read_graph` again so the context reminder is refreshed.
+
+Example `n2n_update_context` payload:
+
+```json
+{
+  "projectPath": "/absolute/path/to/repo",
+  "activeTask": "Refactor MCP error handling",
+  "status": "IN_PROGRESS",
+  "nextSteps": ["Run tests", "Update docs"],
+  "reason": "Refactor without changing public API"
+}
+```
 
 ## Tools
 

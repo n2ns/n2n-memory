@@ -18,6 +18,16 @@
 
 n2n-memory 是一个开源、local-first 的 Model Context Protocol (MCP) 记忆服务，面向 AI 编程助手和 AI coding agents。它通过把长效项目知识存储在 `.mcp/memory.json`，把活跃任务上下文存储在 `.mcp/context.json`，避免跨项目记忆污染。
 
+### SEO 友好定位
+
+如果你在搜索：
+- AI 编码记忆
+- 项目级 MCP memory
+- coding agent 的本地上下文记忆
+- 适配 Claude/Cursor/VS Code 的仓库隔离记忆
+
+本项目聚焦于：可审计的 JSON、仓库隔离、以及可读的 Git diff。
+
 ## n2n-memory 是什么？
 
 n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知识图谱。它适合经常在多个仓库之间切换、希望记忆跟随代码仓库而不是跟随全局助手账户的开发者和团队。
@@ -82,6 +92,10 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
 - **Type**: `command`
 - **Command**: `npx -y @datafrog-io/n2n-memory`
 
+##### 其他 MCP 客户端
+- 本服务使用 stdio MCP 协议，可接入任何支持本地命令启动 MCP 的客户端。
+- 排查路径问题时，可在客户端环境中设置 `N2N_LOG_LEVEL=debug`。
+
 #### 2. 使用指南 (Usage Guide)
 
 本服务完全由路径驱动，AI 助手在调用工具时需要关注以下几点：
@@ -127,6 +141,16 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
 - **本体校验**: 可选的关系类型 Schema，确保知识图谱一致性。
 - **时间旅行**: 内存版本快照，支持误操作回滚。
 
+## 安全与治理说明
+
+- `n2n_delete_entities`、`n2n_delete_observations`、`n2n_delete_relations` 会修改或清理持久化记忆，请结合 CI 或人工流程进行保护。
+- 默认建议将 `context.json` 保持未提交；只有在需要共享活跃任务状态时再提交。
+- 遵循 [SECURITY.md](../SECURITY.md) 的安全问题提交流程。
+
+### 搜索歧义说明
+
+`n2n-memory` 与网络层 `n2n` 工具链无关，核心是面向 AI 代码助手的 MCP 记忆服务。
+
 ## FAQ
 
 ### n2n-memory 是向量数据库吗？
@@ -148,6 +172,10 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
 ### 它能和 Claude Desktop、Cursor、VS Code 一起用吗？
 
 可以，只要客户端支持 stdio MCP server。本 README 提供了 Claude Desktop 和 Cursor / VS Code MCP 配置示例。
+
+### 和全局 memory 有什么不同？
+
+不是同一类。它按仓库作用域隔离记忆，适合多个项目切换的团队场景。
 
 ---
 

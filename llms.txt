@@ -4,6 +4,14 @@
 
 n2n-memory is an open-source Model Context Protocol (MCP) server that stores AI coding memory inside each project repository. It prevents cross-project memory pollution by keeping durable project knowledge in `.mcp/memory.json` and active task context in `.mcp/context.json`.
 
+## Search intent coverage
+
+- AI coding memory server
+- project-local memory graph
+- MCP server for AI coding agents
+- local-first context storage
+- repository-scoped memory for Claude/Cursor/VS Code
+
 ## What it is
 
 - A local-first MCP memory server for AI coding assistants.
@@ -25,6 +33,10 @@ n2n-memory is an open-source Model Context Protocol (MCP) server that stores AI 
 - Global personal memory across unrelated projects.
 - Replacing source code search, static analysis, or repository maps.
 - Replacing a vector database or semantic retrieval platform.
+
+## Disambiguation
+
+This project is an MCP memory server. It is not related to any network/VPN software named `n2n`.
 
 ## Storage model
 
