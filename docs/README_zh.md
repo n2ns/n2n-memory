@@ -184,6 +184,7 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
 - **[设计方案](./DESIGN_zh.md)**: 为什么需要项目级隔离？
 - **[API 参考手册](./API_REFERENCE_zh.md)**: 工具描述和 Schema。
 - **[开发指南](./DEVELOPMENT_zh.md)**: 如何构建、测试和扩展。
+- **[npm Trusted Publishing 配置指南](./NPM_TRUSTED_PUBLISHING_zh.md)**: 如何用 GitHub Actions 和 OIDC 安全发布 npm 包。
 - **[变更日志](./CHANGELOG_zh.md)**: 版本演进与故障记录。
 - **[llms.txt](../llms.txt)**: 面向 AI 编程代理和回答引擎的简短项目摘要。
 
