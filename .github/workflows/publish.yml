@@ -25,6 +25,17 @@ jobs:
 
       - run: npm run check
 
+      - name: Verify npm auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM_TOKEN secret is not set. Add it in Settings > Secrets > Actions."
+            exit 1
+          fi
+          npm config set //registry.npmjs.org/:_authToken="${NODE_AUTH_TOKEN}"
+          npm whoami --registry https://registry.npmjs.org
+
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
