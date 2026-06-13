@@ -1,6 +1,6 @@
 {
   "name": "@datafrog-io/n2n-memory",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Project-local knowledge-graph memory MCP server for AI context isolation.",
   "main": "build/index.js",
   "bin": {
@@ -50,6 +50,15 @@
     "ai-memory",
     "project-memory",
     "project-local-memory",
+    "project-local-knowledge-graph",
+    "mcp-memory-server",
+    "coding-agent-memory",
+    "repository-memory",
+    "repository-context",
+    "context-memory",
+    "local-first-memory",
+    "coding-assistant-memory",
+    "project-memory-server",
     "context",
     "ai",
     "ai-developer-tools",
