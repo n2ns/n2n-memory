@@ -11,7 +11,7 @@
 3. workflow 具备 `id-token: write` 权限。
 4. 使用支持 OIDC 的新版本 Node/npm，例如 Node 24 + npm latest。
 
-本文基于 `@datafrog-io/n2n-memory` 从 token 发布迁移到 Trusted Publishing 的真实排错过程。
+本文基于 `n2n-memory` 从 token 发布迁移到 Trusted Publishing 的真实排错过程。
 
 ## 适合搜索的问题
 
@@ -25,7 +25,7 @@
 - npm token 过期怎么办
 - npm provenance GitHub Actions
 - scoped package npm publish 404
-- npm publish --access public
+- npm publish
 - 如何不用 NPM_TOKEN 发布 npm 包
 
 ## 为什么要用 Trusted Publishing
@@ -52,7 +52,7 @@ https://www.npmjs.com/package/<package-name>/access
 例如：
 
 ```text
-https://www.npmjs.com/package/@datafrog-io/n2n-memory/access
+https://www.npmjs.com/package/n2n-memory/access
 ```
 
 进入 `Settings` 后找到 **Trusted Publisher**，选择 **GitHub Actions**。
@@ -112,7 +112,7 @@ jobs:
 
       - run: npm run check
 
-      - run: npm publish --access public
+      - run: npm publish
 ```
 
 关键点解释：
@@ -122,7 +122,7 @@ jobs:
 - `node-version: '24'` 避免旧 npm CLI 不支持最新 OIDC 发布流程。
 - `npm install -g npm@latest` 确保 npm CLI 满足 Trusted Publishing 要求。
 - `registry-url` 必须是 `https://registry.npmjs.org`。
-- scoped public package 发布时建议显式加 `npm publish --access public`。
+- 当前 `n2n-memory` 是 unscoped public package，直接 `npm publish`。scoped public package 才需要 `npm publish --access public`。
 - 不要给 `npm publish` 设置 `NODE_AUTH_TOKEN`。
 
 ## package.json 需要注意什么
@@ -131,15 +131,14 @@ jobs:
 
 ```json
 {
-  "name": "@datafrog-io/n2n-memory",
+  "name": "n2n-memory",
   "version": "1.2.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/n2ns/n2n-memory.git"
   },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+  "bin": {
+    "n2n-memory": "build/index.js"
   }
 }
 ```
@@ -147,8 +146,9 @@ jobs:
 重点：
 
 - `repository.url` 要指向真实 GitHub 仓库。
+- unscoped package 不需要 `publishConfig.access = public`。
+- 首次本地发布短包名时不要强制 `publishConfig.provenance = true`，否则没有 OIDC 环境可能阻塞发布。
 - npm provenance 会校验仓库来源，仓库信息不匹配可能导致发布失败。
-- scoped package 默认可能按 private 处理，所以 public 包建议保留 `publishConfig.access = public`。
 
 ## 正确发布流程
 
@@ -166,8 +166,8 @@ git push origin v1.2.2
 6. 检查 npm：
 
 ```bash
-npm view @datafrog-io/n2n-memory dist-tags.latest
-npm view @datafrog-io/n2n-memory versions --json
+npm view n2n-memory dist-tags.latest
+npm view n2n-memory versions --json
 ```
 
 如果成功，`latest` 会变成新版本。

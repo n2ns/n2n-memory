@@ -1,7 +1,7 @@
 {
-  "name": "@datafrog-io/n2n-memory",
+  "name": "n2n-memory",
   "version": "1.2.2",
-  "description": "Project-local knowledge-graph memory MCP server for AI context isolation.",
+  "description": "Project-local knowledge-graph memory MCP server from N2NS Lab for AI coding agents.",
   "main": "build/index.js",
   "bin": {
     "n2n-memory": "build/index.js"
@@ -21,10 +21,6 @@
   "homepage": "https://github.com/n2ns/n2n-memory#readme",
   "bugs": {
     "url": "https://github.com/n2ns/n2n-memory/issues"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   },
   "type": "module",
   "scripts": {
@@ -70,7 +66,7 @@
     "vscode",
     "knowledge-graph"
   ],
-  "author": "DataFrog IO",
+  "author": "N2NS Lab",
   "license": "MIT",
   "engines": {
     "node": ">=20",

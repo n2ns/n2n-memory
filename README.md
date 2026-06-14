@@ -1,13 +1,12 @@
 # n2n-memory
 
-Project-local memory MCP server for AI coding agents.
+Project-local knowledge-graph memory MCP server from N2NS Lab for AI coding agents.
 
-[![npm version](https://img.shields.io/npm/v/@datafrog-io/n2n-memory)](https://www.npmjs.com/package/@datafrog-io/n2n-memory)
-[![npm total downloads](https://img.shields.io/npm/dt/@datafrog-io/n2n-memory)](https://www.npmjs.com/package/@datafrog-io/n2n-memory)
+[![npm version](https://img.shields.io/npm/v/n2n-memory)](https://www.npmjs.com/package/n2n-memory)
+[![npm total downloads](https://img.shields.io/npm/dt/n2n-memory)](https://www.npmjs.com/package/n2n-memory)
 [![license](https://img.shields.io/github/license/n2ns/n2n-memory)](https://github.com/n2ns/n2n-memory/blob/main/LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Protocol-blue)](https://modelcontextprotocol.io)
-[![node version](https://img.shields.io/node/v/@datafrog-io/n2n-memory)](https://nodejs.org)
-[![N2N Synthetics](https://datafrog.io/badges/n2n-synthetics.svg)](https://github.com/n2ns)
+[![node version](https://img.shields.io/node/v/n2n-memory)](https://nodejs.org)
 [![DataFrog.io](https://datafrog.io/badges/datafrog.svg)](https://datafrog.io)
 
 [中文版](./docs/README_zh.md)
@@ -33,7 +32,7 @@ This server is designed for these goals: deterministic JSON output, project isol
 n2n-memory gives AI coding tools a project-local knowledge graph they can read and update through MCP. It is designed for developers and teams who use AI assistants across multiple repositories and want memory that is local, auditable, Git-friendly, and not mixed with unrelated projects.
 
 **TL;DR**
-- **Install**: `npx -y @datafrog-io/n2n-memory`
+- **Install**: `npx -y n2n-memory`
 - **Protocol**: Model Context Protocol (MCP), stdio transport
 - **Storage**: `.mcp/memory.json` for durable memory, `.mcp/context.json` for active task state
 - **Best for**: AI coding assistant memory, project architecture notes, shared team context
@@ -80,7 +79,7 @@ File Path: `%APPDATA%\Claude\claude_desktop_config.json`
   "mcpServers": {
     "n2n-memory": {
       "command": "npx",
-      "args": ["-y", "@datafrog-io/n2n-memory"]
+      "args": ["-y", "n2n-memory"]
     }
   }
 }
@@ -90,7 +89,7 @@ File Path: `%APPDATA%\Claude\claude_desktop_config.json`
 Add in the MCP settings panel:
 - **Name**: `n2n-memory`
 - **Type**: `command`
-- **Command**: `npx -y @datafrog-io/n2n-memory`
+- **Command**: `npx -y n2n-memory`
 
 ##### Other MCP clients
 - The server uses stdio MCP and can be wired to any MCP client that supports local command execution.
@@ -192,4 +191,4 @@ This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
-Built by N2NS Lab, the open-source lab from Datafrog, focused on practical AI developer tools.
+Built by N2NS Lab, short for Next-to-Native Systems Lab, Datafrog's open-source lab for practical AI developer tools.

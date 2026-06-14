@@ -1,13 +1,12 @@
 # n2n-memory
 
-面向 AI 编程代理的项目本地记忆 MCP Server。
+N2NS Lab 出品的项目本地知识图谱记忆 MCP Server，面向 AI 编程代理。
 
-[![npm version](https://img.shields.io/npm/v/@datafrog-io/n2n-memory)](https://www.npmjs.com/package/@datafrog-io/n2n-memory)
-[![npm total downloads](https://img.shields.io/npm/dt/@datafrog-io/n2n-memory)](https://www.npmjs.com/package/@datafrog-io/n2n-memory)
+[![npm version](https://img.shields.io/npm/v/n2n-memory)](https://www.npmjs.com/package/n2n-memory)
+[![npm total downloads](https://img.shields.io/npm/dt/n2n-memory)](https://www.npmjs.com/package/n2n-memory)
 [![license](https://img.shields.io/github/license/n2ns/n2n-memory)](https://github.com/n2ns/n2n-memory/blob/main/LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Protocol-blue)](https://modelcontextprotocol.io)
-[![node version](https://img.shields.io/node/v/@datafrog-io/n2n-memory)](https://nodejs.org)
-[![N2N Synthetics](https://datafrog.io/badges/n2n-synthetics.svg)](https://github.com/n2ns)
+[![node version](https://img.shields.io/node/v/n2n-memory)](https://nodejs.org)
 [![DataFrog.io](https://datafrog.io/badges/datafrog.svg)](https://datafrog.io)
 
 [English](../README.md)
@@ -33,7 +32,7 @@ n2n-memory 是一个开源、local-first 的 Model Context Protocol (MCP) 记忆
 n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知识图谱。它适合经常在多个仓库之间切换、希望记忆跟随代码仓库而不是跟随全局助手账户的开发者和团队。
 
 **快速摘要**
-- **安装**: `npx -y @datafrog-io/n2n-memory`
+- **安装**: `npx -y n2n-memory`
 - **协议**: Model Context Protocol (MCP)，stdio transport
 - **存储**: `.mcp/memory.json` 保存长效记忆，`.mcp/context.json` 保存活跃任务状态
 - **适合**: AI 编程助手记忆、项目架构笔记、团队共享上下文
@@ -80,7 +79,7 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
   "mcpServers": {
     "n2n-memory": {
       "command": "npx",
-      "args": ["-y", "@datafrog-io/n2n-memory"]
+      "args": ["-y", "n2n-memory"]
     }
   }
 }
@@ -90,7 +89,7 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
 在 MCP 设置面板中添加：
 - **Name**: `n2n-memory`
 - **Type**: `command`
-- **Command**: `npx -y @datafrog-io/n2n-memory`
+- **Command**: `npx -y n2n-memory`
 
 ##### 其他 MCP 客户端
 - 本服务使用 stdio MCP 协议，可接入任何支持本地命令启动 MCP 的客户端。
@@ -193,4 +192,4 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
 
 ---
 
-Built by N2NS Lab, the open-source lab from Datafrog, focused on practical AI developer tools.
+Built by N2NS Lab, short for Next-to-Native Systems Lab, Datafrog's open-source lab for practical AI developer tools.

@@ -48,7 +48,7 @@ This project is an MCP memory server. It is not related to any network/VPN softw
 ## Install
 
 ```bash
-npx -y @datafrog-io/n2n-memory
+npx -y n2n-memory
 ```
 
 ## Primary MCP tools
@@ -76,8 +76,8 @@ npx -y @datafrog-io/n2n-memory
 
 ## Package and repository
 
-- npm: `@datafrog-io/n2n-memory`
+- npm: `n2n-memory`
 - GitHub: `https://github.com/n2ns/n2n-memory`
 - License: MIT
 
-Built by N2NS Lab, the open-source lab from Datafrog, focused on practical AI developer tools.
+Built by N2NS Lab, short for Next-to-Native Systems Lab, Datafrog's open-source lab for practical AI developer tools.
