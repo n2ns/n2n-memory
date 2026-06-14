@@ -3,9 +3,11 @@
 N2NS Lab 出品的项目本地知识图谱记忆 MCP Server，面向 AI 编程代理。
 
 [![npm version](https://img.shields.io/npm/v/n2n-memory)](https://www.npmjs.com/package/n2n-memory)
+[![npm total downloads](https://img.shields.io/npm/dt/n2n-memory)](https://www.npmjs.com/package/n2n-memory)
 [![license](https://img.shields.io/github/license/n2ns/n2n-memory)](https://github.com/n2ns/n2n-memory/blob/main/LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Protocol-blue)](https://modelcontextprotocol.io)
 [![node version](https://img.shields.io/node/v/n2n-memory)](https://nodejs.org)
+[![DataFrog.io](https://datafrog.io/badges/datafrog.svg)](https://datafrog.io)
 
 [English](../README.md)
 
