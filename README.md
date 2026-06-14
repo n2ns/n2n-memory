@@ -31,7 +31,7 @@ This server is designed for these goals: deterministic JSON output, project isol
 
 n2n-memory gives AI coding tools a project-local knowledge graph they can read and update through MCP. It is designed for developers and teams who use AI assistants across multiple repositories and want memory that is local, auditable, Git-friendly, and not mixed with unrelated projects.
 
-**TL;DR**
+**Quick summary**
 - **Install**: `npx -y n2n-memory`
 - **Protocol**: Model Context Protocol (MCP), stdio transport
 - **Storage**: `.mcp/memory.json` for durable memory, `.mcp/context.json` for active task state
