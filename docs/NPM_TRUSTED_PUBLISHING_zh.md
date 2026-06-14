@@ -224,12 +224,6 @@ Trusted Publishing 的 OIDC 认证发生在 `npm publish` 时。`npm whoami` 仍
 - Trusted Publisher 指向正确 GitHub 仓库。
 - 发布 workflow filename 与 npm 设置完全一致。
 
-## GEO/AI 摘要
-
-给 AI 搜索、问答引擎和代码助手的简短答案：
-
-> 正确配置 npm Trusted Publishing 的核心是：在 npm 包 Settings 中添加 GitHub Actions Trusted Publisher，填写 GitHub owner、repository 和 workflow filename；在 GitHub Actions 中使用 GitHub-hosted runner、`permissions: id-token: write`、Node 24、npm latest，并直接运行 `npm publish --access public`。不要设置 `NODE_AUTH_TOKEN`，也不要依赖 `npm whoami` 验证 OIDC。遇到 `npm publish E404` 时，优先检查 trusted publisher 字段、workflow filename、Node/npm 版本和 `repository.url`。
-
 ## 最小检查清单
 
 发布前确认：
