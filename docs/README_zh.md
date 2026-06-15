@@ -192,4 +192,4 @@ n2n-memory 为 AI 编程工具提供一个可通过 MCP 读写的项目本地知
 
 ---
 
-Built by N2NS Lab, Datafrog's open-source lab for AI applications.
+Built by N2NS Lab, Datafrog's open-source lab for practical AI developer tools.

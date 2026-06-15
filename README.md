@@ -191,4 +191,4 @@ This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
-Built by N2NS Lab, Datafrog's open-source lab for AI applications.
+Built by N2NS Lab, Datafrog's open-source lab for practical AI developer tools.
