@@ -67,6 +67,10 @@
     "knowledge-graph"
   ],
   "author": "N2NS Lab",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/n2ns"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=20",
