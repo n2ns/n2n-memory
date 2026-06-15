@@ -1,4 +1,4 @@
-# n2n-memory API Reference
+# n2n-memory tools reference
 
 [中文版](./API_REFERENCE_zh.md)
 
@@ -8,13 +8,7 @@ N2N-Memory provides project-local knowledge graph tools over MCP. Every tool req
 
 Project recognition requires a strong marker such as `.git`, `.mcp`, `package.json`, `tsconfig.json`, or a language-specific build file. README-only directories are treated as weak roots and rejected.
 
-## SEO and discoverability notes
-
-- Recommended labels: **project-local MCP memory**, **AI coding memory graph**, **local-first AI context storage**.
-- Primary user intent: repository context recovery, deterministic project memory, and safe AI coding assistant handoff.
-- This API is designed for local-first agents and does not depend on cloud infrastructure.
-
-## Shared Parameters
+## Shared parameters
 
 All tools include:
 
@@ -23,7 +17,7 @@ All tools include:
 
 If the server recognizes a project root but `.mcp` is missing, it returns an `AWAITING_CONFIRMATION` error response. Call the same tool again with `confirmNewProjectRoot` set to the detected root.
 
-## Data Storage
+## Data storage
 
 - Cold graph: `.mcp/memory.json`
 - Hot context: `.mcp/context.json`
@@ -33,7 +27,7 @@ If the server recognizes a project root but `.mcp` is missing, it returns an `AW
 - Path containment: exported files must stay inside the project root.
 - Logging: full local paths are hidden from server logs by default. Set `N2N_LOG_LEVEL=debug` to include complete paths while troubleshooting.
 
-## Data Model
+## Data model
 
 ### Entity
 ```json
@@ -55,7 +49,7 @@ If the server recognizes a project root but `.mcp` is missing, it returns an `AW
 
 Relations must reference existing entities. Orphan relations are rejected.
 
-### Project Context
+### Project context
 ```json
 {
   "activeTask": "Refactor storage layer",
@@ -69,18 +63,18 @@ Relations must reference existing entities. Orphan relations are rejected.
 
 `updatedAt` is managed by the server when context is written.
 
-## Resources & Templates
+## Resources and templates
 
-### Static Resource
+### Static resource
 - **URI**: `mcp://memory/graph`
 - **Note**: Requires the client to manage project path context or use the template below.
 
-### Resource Template
+### Resource template
 - **Template**: `mcp://memory/graph?path={path}`
 - **Example**: `mcp://memory/graph?path=/home/deploy/projects/n2n-memory`
 - **Behavior**: Returns the complete graph and active context for established projects. New projects must be initialized through tools because resources cannot perform the confirmation handshake.
 
-## Tool Responses & Metadata
+## Tool responses and metadata
 
 Most mutating tools return structured JSON:
 

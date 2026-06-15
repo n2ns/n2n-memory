@@ -69,7 +69,7 @@ npx -y n2n-memory
 ## Key docs
 
 - `README.md`: overview, setup, workflow, FAQ.
-- `docs/API_REFERENCE.md`: full MCP tool reference.
+- `docs/TOOLS_REFERENCE.md`: full MCP tool reference.
 - `docs/DESIGN.md`: architecture and storage design.
 - `docs/DEVELOPMENT.md`: development, testing, CI, publishing.
 - `CHANGELOG.md`: release history.
