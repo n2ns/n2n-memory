@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/n2n-memory-logo.png" width="128" alt="n2n-memory logo">
+</p>
+
 # n2n-memory
 
 Project-local knowledge-graph memory MCP server from N2NS Lab for AI coding agents.
@@ -15,6 +19,14 @@ Project-local knowledge-graph memory MCP server from N2NS Lab for AI coding agen
 > **Context as code. Memory as asset.**
 
 n2n-memory is an open-source, local-first Model Context Protocol (MCP) memory server for AI coding assistants. It prevents cross-project memory pollution by storing durable project knowledge in `.mcp/memory.json` and active task context in `.mcp/context.json` inside each repository.
+
+## 📚 Contents
+
+- [What is n2n-memory?](#-what-is-n2n-memory)
+- [Quick start](#-quick-start)
+- [Configuration](#️-configuration)
+- [Security and governance notes](#-security-and-governance-notes)
+- [Related docs](#-related-docs)
 
 ## 💡 What is n2n-memory?
 
@@ -58,9 +70,18 @@ Add in the MCP settings panel:
 This service is path-driven. AI assistants should pay attention to:
 
 1. **Absolute Project Root**: When calling any `n2n_*` tool, provide the absolute path of the current project root or workspace top-level directory (`projectPath`).
-2. **Initialization Handshake**: If `.mcp` does not exist yet, call the tool again with `confirmNewProjectRoot` set to the detected root returned by the server.
+2. **Initialization Handshake**: The first call in a project that has no `.mcp/` yet does **not** create anything. The server detects the project root and replies with `status: "AWAITING_CONFIRMATION"` and a `detectedRoot`. Call the same tool again with `confirmNewProjectRoot` set to that exact `detectedRoot` to initialize memory. Folders without a real project marker (`.git`, `package.json`, language build files, …) are rejected outright, so memory is never created in an arbitrary directory.
 3. **Auto Storage**: Durable memory is saved to `[ProjectPath]/.mcp/memory.json`; active task context is saved to `[ProjectPath]/.mcp/context.json`.
 4. **Collaboration**: Commit `.mcp/memory.json` when the knowledge graph should be shared with the team. Commit `context.json` only if your workflow wants active task state shared.
+
+Storage layout inside each project:
+
+```text
+<project-root>/
+└── .mcp/
+    ├── memory.json    # durable knowledge graph — commit to share with the team
+    └── context.json   # active task context — usually kept local
+```
 
 Recommended `.gitignore` policy for teams that want to share durable memory:
 
@@ -74,12 +95,20 @@ If your project memory may contain private implementation details, keep the whol
 
 #### Available tools
 
-- **Graph writes**: add entities, observations, and relations to build the knowledge graph.
-- **Graph reads**: read the full graph, get a lightweight summary, search, or open specific entities.
-- **Context**: update active task state before commits and handoffs.
-- **Maintenance**: delete entities, observations, or relations; export the graph to Markdown.
+- **Graph writes** (`n2n_add_entities`, `n2n_add_observations`, `n2n_create_relations`): add entities, observations, and relations to build the knowledge graph.
+- **Graph reads** (`n2n_read_graph`, `n2n_get_graph_summary`, `n2n_search`, `n2n_open_nodes`): read the full graph, get a lightweight summary, search, or open specific entities.
+- **Context** (`n2n_update_context`): update active task state before commits and handoffs.
+- **Maintenance** (`n2n_delete_entities`, `n2n_delete_observations`, `n2n_delete_relations`, `n2n_export_markdown`): delete entities, observations, or relations; export the graph to Markdown.
 
 See [Tools reference](./docs/TOOLS_REFERENCE.md) for parameter schemas and usage notes.
+
+## ⚙️ Configuration
+
+n2n-memory runs as a stdio MCP server with no CLI subcommands — start it with `npx -y n2n-memory` (or `n2n-memory` once installed). Storage location is derived from the `projectPath` you pass to each tool, not from configuration.
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `N2N_LOG_LEVEL` | Set to `debug` to enable verbose logs when diagnosing local path resolution. Any other value (or unset) uses normal logging with full local paths hidden. | unset |
 
 ## 🔐 Security and governance notes
 
